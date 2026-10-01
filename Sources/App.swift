@@ -1,4 +1,6 @@
 import AppKit
+import Carbon.HIToolbox
+import ServiceManagement
 import SwiftUI
 
 @main
@@ -6,290 +8,90 @@ struct DiscordTimeApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
-        Window("Discord Time", id: "main") {
-            ContentView()
+        MenuBarExtra("Discord Time", systemImage: "clock") {
+            MenuContent(delegate: appDelegate, loginItem: appDelegate.loginItem)
         }
-        .windowStyle(.hiddenTitleBar)
-        .windowResizability(.contentSize)
-        .defaultPosition(.center)
     }
 }
 
+/// Runs in the background (no Dock icon) so ⌃⌥⌘T can summon the panel from any app.
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    let model = InputModel()
+    let loginItem = LoginItem()
+    private var panel: LauncherPanel!
+    private var hotKey: GlobalHotKey?
+
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.activate()
+        panel = LauncherPanel(model: model)
+        model.dismiss = { [weak self] in self?.hidePanel() }
+
+        hotKey = GlobalHotKey(
+            keyCode: UInt32(kVK_ANSI_T),
+            modifiers: UInt32(controlKey | optionKey | cmdKey)
+        ) { [weak self] in
+            self?.togglePanel()
+        }
+
+        if !Self.launchedAsLoginItem { showPanel() }
     }
 
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        true
+    /// Opening the app again from Spotlight or Finder while it's already running.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        showPanel()
+        return false
+    }
+
+    func togglePanel() {
+        panel.isVisible ? hidePanel() : showPanel()
+    }
+
+    func showPanel() {
+        model.presented()
+        panel.present()
+    }
+
+    func hidePanel() {
+        panel.orderOut(nil)
+        // If Spotlight or the menu bar activated us, hand focus back to the previous app.
+        if NSApp.isActive { NSApp.hide(nil) }
+    }
+
+    private static var launchedAsLoginItem: Bool {
+        guard let event = NSAppleEventManager.shared().currentAppleEvent,
+              event.eventID == AEEventID(kAEOpenApplication) else { return false }
+        return event.paramDescriptor(forKeyword: AEKeyword(keyAEPropData))?.enumCodeValue
+            == OSType(keyAELaunchedAsLogInItem)
     }
 }
 
-/// Typed text, a date picked by hand, and the copy confirmation.
-final class InputModel: ObservableObject {
-    @Published var text = ""
-    @Published var pickedDate: Date?
-    @Published var copiedStyle: DiscordStyle?
-}
+final class LoginItem: ObservableObject {
+    @Published private(set) var isEnabled = SMAppService.mainApp.status == .enabled
 
-struct ContentView: View {
-    @AppStorage("zone") private var zoneID = ZoneOption.all[0].id
-    @AppStorage("style") private var selectedStyle = DiscordStyle.longDateTime.rawValue
-
-    @StateObject private var model = InputModel()
-    @FocusState private var fieldFocused: Bool
-
-    private var zone: ZoneOption { ZoneOption.named(zoneID) }
-    private var parsedDate: Date? { model.pickedDate ?? TimeParser.parse(model.text, in: zone.timeZone) }
-    private var isEmpty: Bool { model.text.trimmingCharacters(in: .whitespaces).isEmpty && model.pickedDate == nil }
-    private var selected: DiscordStyle { DiscordStyle(rawValue: selectedStyle) ?? .longDateTime }
-
-    var body: some View {
-        VStack(spacing: 0) {
-            inputRow
-            statusRow
-            Divider()
-            TimelineView(.everyMinute) { context in
-                formatList(now: context.date)
-            }
-            Divider()
-            footer
-        }
-        .frame(width: 500)
-        .background(.regularMaterial)
-        .tint(.blurple)
-        .background(alignment: .topLeading) { closeShortcut }
-        .onAppear { fieldFocused = true }
-        .onChange(of: model.text) { model.pickedDate = nil }
-        .onChange(of: zoneID) { model.pickedDate = nil }
-    }
-
-    // MARK: Input
-
-    private var inputRow: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "clock")
-                .font(.system(size: 20, weight: .regular))
-                .foregroundStyle(.secondary)
-
-            TextField("tomorrow 9:30am", text: $model.text)
-                .textFieldStyle(.plain)
-                .font(.system(size: 22))
-                .focused($fieldFocused)
-                .onSubmit { copy(selected) }
-                .onKeyPress(.upArrow) { moveSelection(by: -1); return .handled }
-                .onKeyPress(.downArrow) { moveSelection(by: 1); return .handled }
-
-            Menu {
-                Picker("Time zone", selection: $zoneID) {
-                    ForEach(ZoneOption.all) { option in
-                        Text(option.label).tag(option.id)
-                    }
-                }
-                .pickerStyle(.inline)
-            } label: {
-                Text(zone.label)
-            }
-            .menuStyle(.borderlessButton)
-            .fixedSize()
-            .foregroundStyle(.secondary)
-            .help("Read typed times in this time zone")
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 34)
-        .padding(.bottom, 10)
-    }
-
-    @ViewBuilder
-    private var statusRow: some View {
-        HStack(spacing: 6) {
-            if let date = parsedDate {
-                DatePicker(
-                    "",
-                    selection: Binding(get: { date }, set: { model.pickedDate = TimeParser.floorToMinute($0) }),
-                    displayedComponents: [.date, .hourAndMinute]
-                )
-                .labelsHidden()
-                .datePickerStyle(.compact)
-                .environment(\.timeZone, zone.timeZone)
-                .fixedSize()
-
-                Text(zone.timeZone.abbreviation(for: date) ?? zone.label)
-                    .foregroundStyle(.secondary)
+    func set(_ enabled: Bool) {
+        do {
+            if enabled {
+                try SMAppService.mainApp.register()
             } else {
-                if !isEmpty { Image(systemName: "questionmark.circle") }
-                Text(isEmpty ? "Type a time, like “fri 2pm” or “10/14 7pm”, or paste a <t:…> code"
-                             : "No time found. Try “tomorrow 9:30am” or “fri 2pm”.")
+                try SMAppService.mainApp.unregister()
             }
-            Spacer()
+        } catch {
+            NSSound.beep()
         }
-        .font(.callout)
-        .foregroundStyle(.secondary)
-        .frame(height: 24)
-        .padding(.horizontal, 20)
-        .padding(.bottom, 12)
-    }
-
-    // MARK: Formats
-
-    private func formatList(now: Date) -> some View {
-        let date = parsedDate ?? TimeParser.floorToMinute(now)
-        let usable = parsedDate != nil
-
-        return VStack(spacing: 2) {
-            ForEach(DiscordStyle.allCases) { style in
-                FormatRow(
-                    style: style,
-                    preview: style.preview(for: date, now: now),
-                    code: style.code(for: date),
-                    isSelected: usable && style == selected,
-                    isCopied: style == model.copiedStyle
-                )
-                .contentShape(.rect)
-                .onTapGesture {
-                    guard usable else { return }
-                    selectedStyle = style.rawValue
-                    copy(style)
-                }
-            }
-        }
-        .padding(8)
-        .opacity(usable ? 1 : 0.35)
-        .animation(.easeOut(duration: 0.12), value: selectedStyle)
-    }
-
-    private var footer: some View {
-        HStack(spacing: 14) {
-            KeyHint(key: "↩", label: "Copy")
-            KeyHint(key: "↑↓", label: "Choose")
-            KeyHint(key: "esc", label: "Close")
-            Spacer()
-        }
-        .font(.caption)
-        .foregroundStyle(.tertiary)
-        .padding(.horizontal, 20)
-        .padding(.vertical, 10)
-    }
-
-    private var closeShortcut: some View {
-        Button("Close") { NSApp.keyWindow?.close() }
-            .keyboardShortcut(.cancelAction)
-            .opacity(0)
-            .frame(width: 0, height: 0)
-            .accessibilityHidden(true)
-    }
-
-    // MARK: Actions
-
-    private func moveSelection(by step: Int) {
-        let styles = DiscordStyle.allCases
-        guard let index = styles.firstIndex(of: selected) else { return }
-        let next = min(max(index + step, 0), styles.count - 1)
-        selectedStyle = styles[next].rawValue
-    }
-
-    private func copy(_ style: DiscordStyle) {
-        guard let date = parsedDate else { NSSound.beep(); return }
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(style.code(for: date), forType: .string)
-
-        withAnimation(.easeOut(duration: 0.15)) { model.copiedStyle = style }
-        Task {
-            try? await Task.sleep(for: .seconds(1.4))
-            withAnimation(.easeOut(duration: 0.3)) {
-                if model.copiedStyle == style { model.copiedStyle = nil }
-            }
-        }
+        isEnabled = SMAppService.mainApp.status == .enabled
     }
 }
 
-private struct FormatRow: View {
-    let style: DiscordStyle
-    let preview: String
-    let code: String
-    let isSelected: Bool
-    let isCopied: Bool
+private struct MenuContent: View {
+    let delegate: AppDelegate
+    @ObservedObject var loginItem: LoginItem
 
     var body: some View {
-        HStack(spacing: 12) {
-            TimestampChip(text: preview)
-            Spacer(minLength: 12)
-            Text(code)
-                .font(.system(.callout, design: .monospaced))
-                .foregroundStyle(isSelected ? .primary : .secondary)
-                .textSelection(.enabled)
-            ZStack(alignment: .trailing) {
-                Color.clear
-                trailingMark
-            }
-            .frame(width: 70, height: 18)
-        }
-        .padding(.leading, 10)
-        .padding(.trailing, 12)
-        .padding(.vertical, 8)
-        .background {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(isSelected ? AnyShapeStyle(.tint.opacity(0.16)) : AnyShapeStyle(.clear))
-        }
-        .help(style.name)
+        Button("Open Discord Time") { delegate.showPanel() }
+            .keyboardShortcut("t", modifiers: [.control, .option, .command])
+        Divider()
+        Toggle("Open at Login", isOn: Binding(get: { loginItem.isEnabled }, set: { loginItem.set($0) }))
+        Divider()
+        Button("Quit Discord Time") { NSApp.terminate(nil) }
+            .keyboardShortcut("q")
     }
-
-    @ViewBuilder
-    private var trailingMark: some View {
-        if isCopied {
-            Label("Copied", systemImage: "checkmark")
-                .font(.caption.weight(.medium))
-                .foregroundStyle(.green)
-                .transition(.opacity.combined(with: .scale(scale: 0.9)))
-        } else if isSelected {
-            KeyCap("↩")
-                .foregroundStyle(.secondary)
-                .transition(.opacity)
-        }
-    }
-}
-
-/// The highlighted pill Discord draws around a rendered timestamp.
-private struct TimestampChip: View {
-    let text: String
-
-    var body: some View {
-        Text(text)
-            .font(.body)
-            .lineLimit(1)
-            .padding(.horizontal, 5)
-            .padding(.vertical, 1)
-            .background(.primary.opacity(0.08), in: .rect(cornerRadius: 4, style: .continuous))
-    }
-}
-
-private struct KeyCap: View {
-    let key: String
-    init(_ key: String) { self.key = key }
-
-    var body: some View {
-        Text(key)
-            .font(.system(.caption2, design: .rounded).weight(.semibold))
-            .padding(.horizontal, 5)
-            .padding(.vertical, 1)
-            .background(.quaternary, in: .rect(cornerRadius: 4, style: .continuous))
-    }
-}
-
-private struct KeyHint: View {
-    let key: String
-    let label: String
-
-    var body: some View {
-        HStack(spacing: 4) {
-            KeyCap(key)
-            Text(label)
-        }
-    }
-}
-
-extension Color {
-    /// Discord's brand color, matching the app icon.
-    static let blurple = Color(red: 0x58 / 255, green: 0x65 / 255, blue: 0xF2 / 255)
 }

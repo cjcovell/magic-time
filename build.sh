@@ -20,7 +20,7 @@ echo "→ Compiling app"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 swiftc -O -parse-as-library -target arm64-apple-macos14.0 \
   -o "$APP/Contents/MacOS/DiscordTime" \
-  "$ROOT/Sources/TimeParser.swift" "$ROOT/Sources/App.swift"
+  "$ROOT"/Sources/*.swift
 
 echo "→ Icon"
 swift "$ROOT/Tools/make_icon.swift" "$BUILD/AppIcon.iconset"
@@ -42,6 +42,7 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
   <key>LSMinimumSystemVersion</key><string>14.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
   <key>NSHighResolutionCapable</key><true/>
+  <key>LSUIElement</key><true/>
 </dict>
 </plist>
 PLIST
