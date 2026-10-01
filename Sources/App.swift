@@ -8,8 +8,11 @@ struct DiscordTimeApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
-        MenuBarExtra("Discord Time", systemImage: "clock") {
+        MenuBarExtra {
             MenuContent(delegate: appDelegate, loginItem: appDelegate.loginItem)
+        } label: {
+            Image(nsImage: .menuBarGlyph)
+                .accessibilityLabel("Discord Time")
         }
     }
 }
@@ -94,4 +97,22 @@ private struct MenuContent: View {
         Button("Quit Discord Time") { NSApp.terminate(nil) }
             .keyboardShortcut("q")
     }
+}
+
+private extension NSImage {
+    /// "<t:>" in SF Mono, as a template image so it follows the menu bar's light/dark tint.
+    static let menuBarGlyph: NSImage = {
+        let text = "<t:>" as NSString
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.monospacedSystemFont(ofSize: 13, weight: .semibold),
+            .kern: -1.2,
+        ]
+        let size = text.size(withAttributes: attributes)
+        let image = NSImage(size: NSSize(width: ceil(size.width), height: 18), flipped: false) { rect in
+            text.draw(at: NSPoint(x: 0, y: (rect.height - size.height) / 2), withAttributes: attributes)
+            return true
+        }
+        image.isTemplate = true
+        return image
+    }()
 }
