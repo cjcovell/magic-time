@@ -99,7 +99,9 @@ enum DiscordStyle: String, CaseIterable, Identifiable {
         case .shortTime:
             date.formatted(date: .omitted, time: .shortened)
         case .relative:
-            Self.relativeFormatter.localizedString(for: date, relativeTo: now)
+            abs(date.timeIntervalSince(now)) < 60
+                ? "now"
+                : Self.relativeFormatter.localizedString(for: date, relativeTo: now)
         case .longDate:
             date.formatted(date: .long, time: .omitted)
         case .shortDate:

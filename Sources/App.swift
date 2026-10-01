@@ -55,8 +55,9 @@ struct ContentView: View {
             Divider()
             footer
         }
-        .frame(width: 460)
+        .frame(width: 500)
         .background(.regularMaterial)
+        .tint(.blurple)
         .background(alignment: .topLeading) { closeShortcut }
         .onAppear { fieldFocused = true }
         .onChange(of: model.text) { model.pickedDate = nil }
@@ -116,9 +117,9 @@ struct ContentView: View {
                 Text(zone.timeZone.abbreviation(for: date) ?? zone.label)
                     .foregroundStyle(.secondary)
             } else {
-                Image(systemName: isEmpty ? "text.cursor" : "questionmark.circle")
-                Text(isEmpty ? "Type a time — “tomorrow 9:30am”, “fri 2pm”, “10/14 7pm”"
-                             : "Couldn’t read that. Try “tomorrow 9:30am” or “fri 2pm”.")
+                if !isEmpty { Image(systemName: "questionmark.circle") }
+                Text(isEmpty ? "Type a time, like “fri 2pm” or “10/14 7pm”, or paste a <t:…> code"
+                             : "No time found. Try “tomorrow 9:30am” or “fri 2pm”.")
             }
             Spacer()
         }
@@ -163,11 +164,6 @@ struct ContentView: View {
             KeyHint(key: "↑↓", label: "Choose")
             KeyHint(key: "esc", label: "Close")
             Spacer()
-            if model.copiedStyle != nil {
-                Label("Copied", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-                    .transition(.opacity)
-            }
         }
         .font(.caption)
         .foregroundStyle(.tertiary)
@@ -217,32 +213,67 @@ private struct FormatRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(preview)
-                    .font(.body)
-                    .foregroundStyle(.primary)
-                Text(code)
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(.secondary)
-                    .textSelection(.enabled)
+            TimestampChip(text: preview)
+            Spacer(minLength: 12)
+            Text(code)
+                .font(.system(.callout, design: .monospaced))
+                .foregroundStyle(isSelected ? .primary : .secondary)
+                .textSelection(.enabled)
+            ZStack(alignment: .trailing) {
+                Color.clear
+                trailingMark
             }
-            Spacer(minLength: 8)
-            Text(style.name)
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-            Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(isCopied ? AnyShapeStyle(.green) : AnyShapeStyle(.secondary))
-                .frame(width: 16)
-                .opacity(isSelected || isCopied ? 1 : 0)
-                .contentTransition(.symbolEffect(.replace))
+            .frame(width: 70, height: 18)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 7)
+        .padding(.leading, 10)
+        .padding(.trailing, 12)
+        .padding(.vertical, 8)
         .background {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(isSelected ? AnyShapeStyle(Color.accentColor.opacity(0.16)) : AnyShapeStyle(.clear))
+                .fill(isSelected ? AnyShapeStyle(.tint.opacity(0.16)) : AnyShapeStyle(.clear))
         }
+        .help(style.name)
+    }
+
+    @ViewBuilder
+    private var trailingMark: some View {
+        if isCopied {
+            Label("Copied", systemImage: "checkmark")
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.green)
+                .transition(.opacity.combined(with: .scale(scale: 0.9)))
+        } else if isSelected {
+            KeyCap("↩")
+                .foregroundStyle(.secondary)
+                .transition(.opacity)
+        }
+    }
+}
+
+/// The highlighted pill Discord draws around a rendered timestamp.
+private struct TimestampChip: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.body)
+            .lineLimit(1)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 1)
+            .background(.primary.opacity(0.08), in: .rect(cornerRadius: 4, style: .continuous))
+    }
+}
+
+private struct KeyCap: View {
+    let key: String
+    init(_ key: String) { self.key = key }
+
+    var body: some View {
+        Text(key)
+            .font(.system(.caption2, design: .rounded).weight(.semibold))
+            .padding(.horizontal, 5)
+            .padding(.vertical, 1)
+            .background(.quaternary, in: .rect(cornerRadius: 4, style: .continuous))
     }
 }
 
@@ -252,12 +283,13 @@ private struct KeyHint: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            Text(key)
-                .font(.system(.caption2, design: .rounded).weight(.semibold))
-                .padding(.horizontal, 5)
-                .padding(.vertical, 1)
-                .background(.quaternary, in: .rect(cornerRadius: 4, style: .continuous))
+            KeyCap(key)
             Text(label)
         }
     }
+}
+
+extension Color {
+    /// Discord's brand color, matching the app icon.
+    static let blurple = Color(red: 0x58 / 255, green: 0x65 / 255, blue: 0xF2 / 255)
 }
