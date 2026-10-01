@@ -24,7 +24,7 @@ struct MakeTimestampIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
-        let zoneID = zone?.rawValue ?? UserDefaults.standard.string(forKey: "zone") ?? ZoneOption.all[0].id
+        let zoneID = zone?.rawValue ?? UserDefaults.standard.string(forKey: "zone") ?? ZoneOption.defaultID
         let style = format.style
         switch TimeParser.interpret(phrase, in: ZoneOption.named(zoneID).timeZone) {
         case .moment(let date):
@@ -71,13 +71,28 @@ enum TimestampFormat: String, AppEnum {
     var style: DiscordStyle { DiscordStyle(rawValue: rawValue)! }
 }
 
+/// The same choices as the app's menu (`ZoneOption.groups`); raw values are the saved identifiers.
 enum TimeZoneChoice: String, AppEnum {
+    case local = "local"
     case eastern = "America/New_York", central = "America/Chicago", mountain = "America/Denver"
-    case pacific = "America/Los_Angeles", utc = "UTC"
+    case pacific = "America/Los_Angeles", alaska = "America/Anchorage", hawaii = "Pacific/Honolulu"
+    case mexicoCity = "America/Mexico_City", saoPaulo = "America/Sao_Paulo"
+    case london = "Europe/London", paris = "Europe/Paris", berlin = "Europe/Berlin", istanbul = "Europe/Istanbul"
+    case lagos = "Africa/Lagos", johannesburg = "Africa/Johannesburg"
+    case dubai = "Asia/Dubai", india = "Asia/Kolkata", singapore = "Asia/Singapore", china = "Asia/Shanghai"
+    case tokyo = "Asia/Tokyo", seoul = "Asia/Seoul", sydney = "Australia/Sydney", auckland = "Pacific/Auckland"
+    case utc = "UTC"
 
     static let typeDisplayRepresentation: TypeDisplayRepresentation = "Time Zone"
     static let caseDisplayRepresentations: [TimeZoneChoice: DisplayRepresentation] = [
-        .eastern: "Eastern", .central: "Central", .mountain: "Mountain", .pacific: "Pacific", .utc: "UTC",
+        .local: "Local Time",
+        .eastern: "Eastern", .central: "Central", .mountain: "Mountain", .pacific: "Pacific",
+        .alaska: "Alaska", .hawaii: "Hawaii", .mexicoCity: "Mexico City", .saoPaulo: "São Paulo",
+        .london: "London", .paris: "Paris", .berlin: "Berlin", .istanbul: "Istanbul",
+        .lagos: "Lagos", .johannesburg: "Johannesburg",
+        .dubai: "Dubai", .india: "India", .singapore: "Singapore", .china: "China",
+        .tokyo: "Tokyo", .seoul: "Seoul", .sydney: "Sydney", .auckland: "Auckland",
+        .utc: "UTC",
     ]
 }
 

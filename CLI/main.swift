@@ -11,11 +11,11 @@ import Foundation
 // printed), 1 = no date or time found, 64 = usage error.
 
 let usage = """
-    usage: magic-time <text> [--zone eastern|central|mountain|pacific|utc|<IANA id>] [--format F|f|s|t|R|D|d|T|S] [--json]
+    usage: magic-time <text> [--zone local|eastern|pacific|london|tokyo|…|utc|<IANA id>] [--format F|f|s|t|R|D|d|T|S] [--json]
 
       Turns plain English ("tomorrow 9:30am", "3rd friday in may 6pm", "lunar new year 7pm PT")
       into Discord timestamp codes. Times are read in --zone unless the text names its own zone;
-      the default is the zone chosen in the Magic Time app (Eastern if none).
+      the default is the zone chosen in the Magic Time app (this Mac’s own zone if none).
     """
 
 var words: [String] = []
@@ -42,10 +42,8 @@ guard !text.trimmingCharacters(in: .whitespaces).isEmpty else {
 
 func resolveZone(_ argument: String?) -> TimeZone? {
     let saved = UserDefaults(suiteName: "cc.covell.magictime")?.string(forKey: "zone")
-    guard let argument else { return ZoneOption.named(saved ?? ZoneOption.all[0].id).timeZone }
-    if let option = ZoneOption.all.first(where: { $0.label.lowercased() == argument.lowercased() }) {
-        return option.timeZone
-    }
+    guard let argument else { return ZoneOption.named(saved ?? ZoneOption.defaultID).timeZone }
+    if let option = ZoneOption.matching(argument) { return option.timeZone }
     return TimeZone(identifier: argument) ?? TimeZone(abbreviation: argument.uppercased())
 }
 

@@ -79,15 +79,19 @@ struct RootView: View {
             }
         } footer: {
             // Always visible, because the toolbar may show only the globe icon.
-            Text(model.zone.id == "UTC" ? "Times you type use UTC." : "Times you type use \(model.zone.label) time.")
+            Text(model.zone.inputHint + ".")
         }
     }
 
     private var zoneMenu: some View {
         Menu {
             Picker("Time Zone", selection: $model.zoneID) {
-                ForEach(ZoneOption.all) { option in
-                    Text(option.label).tag(option.id)
+                ForEach(ZoneOption.menu(including: model.zoneID)) { group in
+                    Section(group.id) {
+                        ForEach(group.options) { option in
+                            Text(option.label).tag(option.id)
+                        }
+                    }
                 }
             }
         } label: {

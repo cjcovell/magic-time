@@ -29,8 +29,9 @@ All text goes through one function, `TimeParser.interpret(_:in:now:)` in
 3. **Natural language**, via `NaturalTime(zone:now:).parse`. A moment from here is floored to the
    whole minute. Decoded codes and timestamps keep their seconds.
 
-The zone passed in is the one chosen in the panel's menu (Eastern, Central, Mountain, Pacific,
-or UTC; remembered in `UserDefaults` under `zone`). A zone named in the text overrides it.
+The zone passed in is the one chosen in the menu: Local (the device's own zone, the default), a U.S.
+zone, a city elsewhere, or UTC (`ZoneOption.groups`; remembered in `UserDefaults` under `zone` as an
+IANA identifier or `local`). A zone named in the text overrides it.
 
 The same four parser files (`TimeParser`, `NaturalTime`, `Holidays`, `HinduFestivals`) are compiled
 into the test runner (`Tests/main.swift`), and into the `magic-time` command (`CLI/main.swift`),

@@ -24,7 +24,7 @@ final class TimestampModel {
     private(set) var copyCount = 0
 
     init() {
-        zoneID = UserDefaults.standard.string(forKey: "zone") ?? ZoneOption.all[0].id
+        zoneID = UserDefaults.standard.string(forKey: "zone") ?? ZoneOption.defaultID
     }
 
     var zone: ZoneOption { ZoneOption.named(zoneID) }

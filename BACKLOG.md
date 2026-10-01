@@ -4,10 +4,6 @@ Known gaps and planned work, roughly in priority order.
 
 ## Before or soon after the App Store launch
 
-- **Time zone picker is U.S.-only.** The picker offers Eastern, Central, Mountain, Pacific, and UTC
-  (`ZoneOption.all` in `Sources/TimeParser.swift`) and starts on Eastern for everyone. Someone in
-  London or Tokyo has to type their zone into every phrase. Start on the device’s own time zone,
-  label it plainly (for example, “Local (London)”), and let people pick any zone.
 - **Unknown event names are skipped instead of refused.** “super bowl sunday 6pm” reads as the next
   Sunday, because unknown words are skipped. That breaks the never-guess rule: when skipped words
   look like an event or holiday name, show a note instead of a time. Add checks for it.
@@ -19,3 +15,9 @@ Known gaps and planned work, roughly in priority order.
 ## Later
 
 - Localize the app and listing beyond U.S. English.
+
+## Done, waiting for the next App Store update
+
+- The time zone picker starts on the device’s own zone (“Local”) and lists cities worldwide;
+  Siri, Shortcuts, and `magic-time --zone` take the same choices. Ship it as 1.0.1 with a new
+  build number, and retake the store screenshots (their footer still says Eastern time).

@@ -265,6 +265,37 @@ for (name, rule) in HolidayCatalog.datedRules {
 }
 check("orthodox easter 2100", at(2100, 5, 2))         // Julian–Gregorian gap grows to 14 days in 2100
 
+// MARK: Time zone choices
+
+func expect(_ ok: Bool, _ what: String) {
+    if ok { passes += 1 } else { failures += 1; print("FAIL  zones: \(what)") }
+}
+let localCity = TimeZone.current.identifier.split(separator: "/").last.map { $0.replacingOccurrences(of: "_", with: " ") } ?? ""
+expect(ZoneOption.defaultID == ZoneOption.localID, "the default is the device’s own zone")
+expect(ZoneOption.named(ZoneOption.localID).timeZone.identifier == TimeZone.current.identifier, "Local follows the device")
+expect(ZoneOption.named(ZoneOption.localID).label == "Local (\(localCity))", "Local names its city")
+expect(ZoneOption.named("America/New_York").label == "Eastern", "a saved Eastern choice keeps its name")
+expect(ZoneOption.named("Europe/London").label == "London", "London is offered")
+expect(ZoneOption.named("Asia/Tokyo").label == "Tokyo", "Tokyo is offered")
+expect(ZoneOption.named("Asia/Kolkata").label == "India", "India is offered")
+expect(ZoneOption.named("Asia/Kathmandu").label == "Kathmandu", "an unlisted real zone keeps working")
+expect(ZoneOption.named("Asia/Kathmandu").timeZone.identifier == "Asia/Kathmandu", "an unlisted zone reads in that zone")
+expect(ZoneOption.named("Not/AZone").id == ZoneOption.localID, "an unknown saved value falls back to Local")
+expect(ZoneOption.named("UTC").inputHint == "Times you type use UTC", "UTC hint")
+expect(ZoneOption.named("Europe/London").inputHint == "Times you type use London time", "city hint")
+expect(ZoneOption.named("America/Chicago").inputHint == "Times you type use Central time", "U.S. hint")
+expect(ZoneOption.named(ZoneOption.localID).inputHint == "Times you type use your local time (\(localCity))", "Local hint")
+expect(ZoneOption.matching("tokyo")?.id == "Asia/Tokyo", "match a city by name")
+expect(ZoneOption.matching("Pacific")?.id == "America/Los_Angeles", "match a U.S. zone by name")
+expect(ZoneOption.matching("local")?.id == ZoneOption.localID, "match Local by name")
+expect(ZoneOption.matching("narnia") == nil, "no match for an unknown name")
+expect(ZoneOption.choices(including: "Asia/Kathmandu").contains { $0.id == "Asia/Kathmandu" }, "a saved unlisted zone appears in the menu")
+expect(ZoneOption.choices(including: "Europe/London").filter { $0.id == "Europe/London" }.count == 1, "a listed zone isn’t added twice")
+let listed = ZoneOption.groups.flatMap(\.options)
+expect(Set(listed.map(\.id)).count == listed.count, "no zone is listed twice")
+expect(listed.allSatisfy { $0.id == ZoneOption.localID || TimeZone(identifier: $0.id) != nil }, "every listed zone exists")
+expect(listed.first?.id == ZoneOption.localID, "Local comes first")
+
 let sample = Date(timeIntervalSince1970: 1790947800)
 let letters = DiscordStyle.allCases.map(\.rawValue).sorted().joined()
 if letters == "DFRSTdfst" { passes += 1 } else { failures += 1; print("FAIL  styles: \(letters)") }

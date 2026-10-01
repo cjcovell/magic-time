@@ -22,7 +22,7 @@ final class InputModel: ObservableObject {
     var dismiss: () -> Void = {}
 
     init() {
-        zoneID = defaults.string(forKey: "zone") ?? ZoneOption.all[0].id
+        zoneID = defaults.string(forKey: "zone") ?? ZoneOption.defaultID
         selectedStyle = defaults.string(forKey: "style").flatMap(DiscordStyle.init(rawValue:)) ?? .fullDateShortTime
         #if DEBUG
         // Screenshots: `-MTPrefill "fri 8pm PT"` on the launch command line, as in the iOS app.
@@ -114,8 +114,12 @@ struct ContentView: View {
 
             Menu {
                 Picker("Time zone", selection: $model.zoneID) {
-                    ForEach(ZoneOption.all) { option in
-                        Text(option.label).tag(option.id)
+                    ForEach(ZoneOption.menu(including: model.zoneID)) { group in
+                        Section(group.id) {
+                            ForEach(group.options) { option in
+                                Text(option.label).tag(option.id)
+                            }
+                        }
                     }
                 }
                 .pickerStyle(.inline)
@@ -149,7 +153,7 @@ struct ContentView: View {
                 Text(model.zone.timeZone.abbreviation(for: date) ?? model.zone.label)
                     .foregroundStyle(.secondary)
             } else {
-                Text(model.zone.id == "UTC" ? "Times you type use UTC" : "Times you type use \(model.zone.label) time")
+                Text(model.zone.inputHint)
                     .foregroundStyle(.tertiary)
             }
             Spacer()

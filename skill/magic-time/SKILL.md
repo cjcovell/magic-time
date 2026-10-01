@@ -14,14 +14,14 @@ phrases, holidays across calendars, and almanac data.
 ## Run it
 
 ```bash
-magic-time "<the user's phrase>" [--zone eastern|central|mountain|pacific|utc|<IANA id>] [--format F|f|s|t|R|D|d|T|S] [--json]
+magic-time "<the user's phrase>" [--zone local|eastern|pacific|london|tokyo|…|utc|<IANA id>] [--format F|f|s|t|R|D|d|T|S] [--json]
 ```
 
 - Pass the user's wording as-is ("tomorrow 9:30am", "fri 8pm PT", "3rd friday in may at 6pm",
   "christmas eve 7pm", "in 2 hours"). The parser handles typos like "tmrw", ranges like "6-8pm",
   and zones written in the text ("PT", "eastern", "london"), which override `--zone`.
 - Use `--zone` when the user states the zone separately ("9:30, eastern time" → `--zone eastern`)
-  or it's clear from context. Without it, the Magic Time app's chosen zone is used (Eastern by default).
+  or it's clear from context. Without it, the Magic Time app's chosen zone is used (this Mac's own zone by default). `--zone` also takes `local` and city names such as `london` or `tokyo`.
 - Use `--format` when they want one specific look; otherwise show the useful few.
 - If `magic-time` isn't on PATH, build it: `cd ~/Projects/magic-time && ./build.sh` (installs to
   `~/.local/bin`). If the project isn't there, say so instead of falling back to manual math.
