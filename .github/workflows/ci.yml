@@ -12,6 +12,6 @@ jobs:
   parser-and-mac-build:
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Parser checks, command, and Mac app
         run: ./build.sh --no-install
