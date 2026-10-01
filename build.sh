@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Builds Magic Time.app and installs it to ~/Applications (Spotlight indexes it there).
+# Builds Magic Time.app and installs it to /Applications.
 # Requires Xcode (actool compiles the Icon Composer icon).
 # Usage: ./build.sh            test, build, install
 #        ./build.sh --no-install
@@ -8,7 +8,7 @@ set -euo pipefail
 ROOT=${0:A:h}
 BUILD="$ROOT/build"
 APP="$BUILD/Magic Time.app"
-DEST="$HOME/Applications/Magic Time.app"
+DEST="/Applications/Magic Time.app"
 
 rm -rf "$BUILD"
 mkdir -p "$BUILD"
@@ -55,9 +55,16 @@ codesign --force --sign - "$APP"
 
 if [[ "${1:-}" != "--no-install" ]]; then
   echo "→ Installing to $DEST"
+  was_running=false
+  pgrep -qx MagicTime && was_running=true
   pkill -x MagicTime 2>/dev/null || true
+  for _ in {1..50}; do pgrep -qx MagicTime || break; sleep 0.1; done
   rm -rf "$DEST"
   ditto "$APP" "$DEST"
   mdimport "$DEST" 2>/dev/null || true
+  # Bring back a copy that was running, quietly, so ⌃⌥⌘T keeps working.
+  if $was_running; then
+    open -g "$DEST" --args --background
+  fi
 fi
 echo "✓ Done"

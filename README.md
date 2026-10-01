@@ -44,7 +44,7 @@ Examples are for a US-English reader; every viewer sees their own locale’s for
 Requires macOS 14+ and Xcode (for `actool`, which compiles the Icon Composer icon).
 
 ```sh
-./build.sh               # runs the parser checks, builds, installs to ~/Applications
+./build.sh               # runs the parser checks, builds, installs to /Applications
 ./build.sh --no-install  # build only, into ./build
 ```
 

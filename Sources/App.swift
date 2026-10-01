@@ -35,7 +35,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.togglePanel()
         }
 
-        if !Self.launchedAsLoginItem { showPanel() }
+        // `--background` (used by build.sh when reinstalling) starts without showing the panel.
+        let quietLaunch = Self.launchedAsLoginItem || CommandLine.arguments.contains("--background")
+        if !quietLaunch { showPanel() }
     }
 
     /// Opening the app again from Spotlight or Finder while it's already running.
