@@ -1,4 +1,29 @@
+# Build output
 build/
+DerivedData/
+.build/
+.swiftpm/
+*.xcarchive
+*.ipa
+
+# Xcode user state
 xcuserdata/
 *.xcuserstate
+
+# Signing material
+*.p12
+*.cer
+*.mobileprovision
+*.provisionprofile
+*.pem
+*.key
+
+# Secrets
+.env
+.env.*
+
+# Editors and OS
+.idea/
+.vscode/
+*.log
 .DS_Store
