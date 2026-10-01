@@ -24,6 +24,10 @@ final class InputModel: ObservableObject {
     init() {
         zoneID = defaults.string(forKey: "zone") ?? ZoneOption.all[0].id
         selectedStyle = defaults.string(forKey: "style").flatMap(DiscordStyle.init(rawValue:)) ?? .fullDateShortTime
+        #if DEBUG
+        // Screenshots: `-MTPrefill "fri 8pm PT"` on the launch command line, as in the iOS app.
+        if let prefill = defaults.string(forKey: "MTPrefill") { text = prefill }
+        #endif
     }
 
     var zone: ZoneOption { ZoneOption.named(zoneID) }

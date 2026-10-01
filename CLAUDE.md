@@ -8,8 +8,10 @@ command, and the Claude skill in `skill/magic-time`.
 
 - `./build.sh --no-install`: runs the parser checks (`Tests/main.swift`), then builds the Mac app
   and the `magic-time` command into `build/`. `./build.sh` also installs them.
-- `xcodegen generate`: regenerates `MagicTime.xcodeproj` from `project.yml` (the iOS target).
-  Edit `project.yml`, never the generated project.
+- `xcodegen generate`: regenerates `MagicTime.xcodeproj` from `project.yml` (the iOS target and the
+  sandboxed Mac App Store target, `MagicTime-macOS`). Edit `project.yml`, never the generated project.
+- `build.sh` deletes `build/` first, so keep archives and store screenshots somewhere else.
+- Screenshots: `-MTPrefill "phrase"` works in Debug builds of both apps (add `-style F` on Mac).
 - App Store export or upload: `xcodebuild -exportArchive` fails with a “Copy failed” packaging
   error when Homebrew’s rsync comes first in `PATH`. Prefix the command with
   `PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH"`.

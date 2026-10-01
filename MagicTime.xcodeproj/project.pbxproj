@@ -10,27 +10,40 @@
 		09A58D1CA4500D3603BB015C /* HinduFestivals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D7DF6E3B41403FA38BB9C83 /* HinduFestivals.swift */; };
 		151A46C1898B9155F88FE3A8 /* TimestampModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC2F7D8CA2628D8B4B07A33 /* TimestampModel.swift */; };
 		2C1DDAD8882F11210FBF34DF /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2B939D4B21B08D52881B8C62 /* PrivacyInfo.xcprivacy */; };
+		2DC4680F84C836F3C712DD4E /* HinduFestivals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D7DF6E3B41403FA38BB9C83 /* HinduFestivals.swift */; };
 		341426ECB9A1D94EE9B5FD0F /* NaturalTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = E27FFC3A8CC37FA9207C0773 /* NaturalTime.swift */; };
+		55E81DF4EEC057D5EA190FE6 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F0AA6526B1DE1B415B81FB2 /* App.swift */; };
+		5B5958487593B3A89A86DD93 /* Holidays.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F524D51FC8A35DFF3EBD894 /* Holidays.swift */; };
 		7EF6958A6318ECF695C82C95 /* TimestampIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47BAE104BF134677D5CC0598 /* TimestampIntents.swift */; };
+		832EEC3C5BCB7E3462703CFD /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 4B721CAF9F000C221EFEF9B5 /* AppIcon.icon */; };
+		99C5FC987D4D1F2BB9F22406 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73B5E0D8B3061BEBC41E1DA1 /* ContentView.swift */; };
 		A987DABC7C1BAC2C7A0102F0 /* MagicTimeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18018A7A9D6AC1D83C141B0C /* MagicTimeApp.swift */; };
 		B3C720A1B8AE1CF29C840C3D /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 4B721CAF9F000C221EFEF9B5 /* AppIcon.icon */; };
+		B3D3A4E34181C61459178D35 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2B939D4B21B08D52881B8C62 /* PrivacyInfo.xcprivacy */; };
 		B76EF58D15B882D808936667 /* Holidays.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F524D51FC8A35DFF3EBD894 /* Holidays.swift */; };
+		C6A042B7CFDB16FBEDFB2DF9 /* NaturalTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = E27FFC3A8CC37FA9207C0773 /* NaturalTime.swift */; };
 		CA208AF309E46A1ED30B7F69 /* TimeParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87C6ECFE373DD284BE952FD4 /* TimeParser.swift */; };
+		DC2354825E556AAC48BDBE89 /* TimeParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87C6ECFE373DD284BE952FD4 /* TimeParser.swift */; };
 		EC38D2743B5D77D38B7BFDF6 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACDF45E031D90D23D78BBE1 /* RootView.swift */; };
+		FD902387AAEAF1F542F48AD8 /* Launcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88623D833BC3DA04A141AA38 /* Launcher.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		18018A7A9D6AC1D83C141B0C /* MagicTimeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagicTimeApp.swift; sourceTree = "<group>"; };
 		2B939D4B21B08D52881B8C62 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		3F0AA6526B1DE1B415B81FB2 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		3F524D51FC8A35DFF3EBD894 /* Holidays.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Holidays.swift; sourceTree = "<group>"; };
 		47BAE104BF134677D5CC0598 /* TimestampIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimestampIntents.swift; sourceTree = "<group>"; };
 		4B721CAF9F000C221EFEF9B5 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		4D5F17D8286055A7FA8EB2E8 /* MagicTime-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "MagicTime-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4DC2F7D8CA2628D8B4B07A33 /* TimestampModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimestampModel.swift; sourceTree = "<group>"; };
+		73B5E0D8B3061BEBC41E1DA1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		87C6ECFE373DD284BE952FD4 /* TimeParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeParser.swift; sourceTree = "<group>"; };
+		88623D833BC3DA04A141AA38 /* Launcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Launcher.swift; sourceTree = "<group>"; };
 		9D7DF6E3B41403FA38BB9C83 /* HinduFestivals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HinduFestivals.swift; sourceTree = "<group>"; };
 		AACDF45E031D90D23D78BBE1 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		E27FFC3A8CC37FA9207C0773 /* NaturalTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaturalTime.swift; sourceTree = "<group>"; };
+		FC4B2D2182D7D49E2B5FC579 /* MagicTime-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MagicTime-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -56,6 +69,7 @@
 			isa = PBXGroup;
 			children = (
 				4D5F17D8286055A7FA8EB2E8 /* MagicTime-iOS.app */,
+				FC4B2D2182D7D49E2B5FC579 /* MagicTime-macOS.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -75,8 +89,11 @@
 		DAC0FEBE001FF039D492D2AF /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				3F0AA6526B1DE1B415B81FB2 /* App.swift */,
+				73B5E0D8B3061BEBC41E1DA1 /* ContentView.swift */,
 				9D7DF6E3B41403FA38BB9C83 /* HinduFestivals.swift */,
 				3F524D51FC8A35DFF3EBD894 /* Holidays.swift */,
+				88623D833BC3DA04A141AA38 /* Launcher.swift */,
 				E27FFC3A8CC37FA9207C0773 /* NaturalTime.swift */,
 				87C6ECFE373DD284BE952FD4 /* TimeParser.swift */,
 			);
@@ -86,6 +103,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		326F4E3A2A16D2FB22196439 /* MagicTime-macOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2D00889A31ED9E750E35A909 /* Build configuration list for PBXNativeTarget "MagicTime-macOS" */;
+			buildPhases = (
+				8B0E4B11AF33991DB4797E22 /* Sources */,
+				D6A00558B6F0EB42375EA858 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "MagicTime-macOS";
+			packageProductDependencies = (
+			);
+			productName = "MagicTime-macOS";
+			productReference = FC4B2D2182D7D49E2B5FC579 /* MagicTime-macOS.app */;
+			productType = "com.apple.product-type.application";
+		};
 		4AAC8CD166B7127D9F39DEC6 /* MagicTime-iOS */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A8BB6F9108DC095CE854AA18 /* Build configuration list for PBXNativeTarget "MagicTime-iOS" */;
@@ -113,6 +148,10 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					326F4E3A2A16D2FB22196439 = {
+						DevelopmentTeam = PHYC7GJW6B;
+						ProvisioningStyle = Automatic;
+					};
 					4AAC8CD166B7127D9F39DEC6 = {
 						DevelopmentTeam = PHYC7GJW6B;
 						ProvisioningStyle = Automatic;
@@ -134,6 +173,7 @@
 			projectRoot = "";
 			targets = (
 				4AAC8CD166B7127D9F39DEC6 /* MagicTime-iOS */,
+				326F4E3A2A16D2FB22196439 /* MagicTime-macOS */,
 			);
 		};
 /* End PBXProject section */
@@ -145,6 +185,15 @@
 			files = (
 				B3C720A1B8AE1CF29C840C3D /* AppIcon.icon in Resources */,
 				2C1DDAD8882F11210FBF34DF /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D6A00558B6F0EB42375EA858 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				832EEC3C5BCB7E3462703CFD /* AppIcon.icon in Resources */,
+				B3D3A4E34181C61459178D35 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -166,9 +215,73 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		8B0E4B11AF33991DB4797E22 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				55E81DF4EEC057D5EA190FE6 /* App.swift in Sources */,
+				99C5FC987D4D1F2BB9F22406 /* ContentView.swift in Sources */,
+				2DC4680F84C836F3C712DD4E /* HinduFestivals.swift in Sources */,
+				5B5958487593B3A89A86DD93 /* Holidays.swift in Sources */,
+				FD902387AAEAF1F542F48AD8 /* Launcher.swift in Sources */,
+				C6A042B7CFDB16FBEDFB2DF9 /* NaturalTime.swift in Sources */,
+				DC2354825E556AAC48BDBE89 /* TimeParser.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		6EF1CF198629F76B156D2E12 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = macOS/MagicTime.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Magic Time";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 CJ Covell";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = cc.covell.magictime;
+				PRODUCT_NAME = "Magic Time";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		B4759AFA3F988598DE56D03E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = macOS/MagicTime.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Magic Time";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 CJ Covell";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = cc.covell.magictime;
+				PRODUCT_NAME = "Magic Time";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
 		BB4C45FCB9E8FB5637B209FA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -270,11 +383,11 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -336,12 +449,12 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -351,6 +464,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2D00889A31ED9E750E35A909 /* Build configuration list for PBXNativeTarget "MagicTime-macOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B4759AFA3F988598DE56D03E /* Debug */,
+				6EF1CF198629F76B156D2E12 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		A8BB6F9108DC095CE854AA18 /* Build configuration list for PBXNativeTarget "MagicTime-iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
