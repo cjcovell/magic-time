@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Magic Time: Chat Timestamps</title>
+<meta name="description" content="Type a time in plain English and get a Discord timestamp code. Everyone who reads it sees the time in their own time zone.">
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a href="./"><img src="icon.png" alt=""><span>Magic Time</span></a>
+    <nav aria-label="Site"><a href="#support">Support</a><a href="privacy.html">Privacy</a></nav>
+  </header>
+
+  <main>
+    <div class="hero">
+      <h1>Type a time. Everyone sees their own.</h1>
+      <p>Magic Time turns plain English like “fri 8pm PT” into a Discord timestamp code. Paste the code in a message, and each person reading it sees the time in their own time zone.</p>
+    </div>
+
+    <div class="demo" aria-label="Example">
+      <dl>
+        <div>
+          <dt>You type</dt>
+          <dd class="typed">fri 2pm eastern</dd>
+        </div>
+        <div>
+          <dt>Magic Time copies</dt>
+          <dd class="code" id="code">&lt;t:1790964000:F&gt;</dd>
+        </div>
+        <div class="you">
+          <dt id="you-label">Discord shows you</dt>
+          <dd><span class="pill" id="you">Friday, October 2, 2026 at 2:00 PM</span></dd>
+          <ul class="others" id="others">
+            <li><span class="city">Los Angeles</span><span class="pill">Friday, October 2, 2026 at 11:00 AM</span></li>
+            <li><span class="city">London</span><span class="pill">Friday, October 2, 2026 at 7:00 PM</span></li>
+            <li><span class="city">Tokyo</span><span class="pill">Saturday, October 3, 2026 at 3:00 AM</span></li>
+          </ul>
+        </div>
+      </dl>
+    </div>
+
+    <section>
+      <h2>Where it works</h2>
+      <div class="platforms">
+        <div>
+          <h3>Mac</h3>
+          <p>Lives in the menu bar. Press <kbd>⌃⌥⌘T</kbd> in any app, type a time, press <kbd>↩</kbd>, and paste.</p>
+        </div>
+        <div>
+          <h3>iPhone and iPad</h3>
+          <p>Type a time and tap a format to copy it. Also in Spotlight, Siri, Shortcuts, and the Action button.</p>
+        </div>
+        <div>
+          <h3>Command line</h3>
+          <p>The <code>magic-time</code> command uses the same reader, so every version gives the same answer.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Reads the way you talk</h2>
+      <p>Days, dates, times, time zones, and holidays across many calendars. If Magic Time can’t be sure what you meant, it says so instead of guessing.</p>
+      <ul class="phrases">
+        <li>tomorrow 9:30am</li>
+        <li>tmrw 8p</li>
+        <li>3rd friday in may at 6pm</li>
+        <li>friday after next</li>
+        <li>in 2 hours</li>
+        <li>7pm london</li>
+        <li>lunar new year 7pm PT</li>
+        <li>erev rosh hashanah 6pm</li>
+        <li>last friday of the month</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Nine Discord formats</h2>
+      <p>The letter at the end of the code picks how Discord draws it. Examples are for a reader in the U.S.; everyone sees their own language and clock style.</p>
+      <table>
+        <thead><tr><th scope="col">Code</th><th scope="col">Discord shows</th></tr></thead>
+        <tbody>
+          <tr><td>F</td><td>Friday, October 2, 2026 at 2:00 PM</td></tr>
+          <tr><td>f</td><td>October 2, 2026 at 2:00 PM</td></tr>
+          <tr><td>s</td><td>10/2/2026, 2:00 PM</td></tr>
+          <tr><td>t</td><td>2:00 PM</td></tr>
+          <tr><td>R</td><td>in 2 days, counting down live</td></tr>
+          <tr><td>D</td><td>October 2, 2026</td></tr>
+          <tr><td>d</td><td>10/2/2026</td></tr>
+          <tr><td>T</td><td>2:00:00 PM</td></tr>
+          <tr><td>S</td><td>10/2/2026, 2:00:00 PM</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="support">
+      <h2>Support</h2>
+      <div class="faq">
+        <details>
+          <summary>Which time zone does Magic Time use?</summary>
+          <p>The one you pick in the app; it starts on Eastern time. A time zone in what you type always wins, so “6pm PT” means Pacific time whatever the setting is.</p>
+        </details>
+        <details>
+          <summary>Why do I see a note instead of a time?</summary>
+          <p>Magic Time never guesses. Some holidays don’t have one agreed date, like Vesak or a plain “Eid,” and some years almanacs disagree. The note explains why and, when it can, names the possible dates so you can type the one you mean.</p>
+        </details>
+        <details>
+          <summary>How do I paste the code into Discord?</summary>
+          <p>Copy a format in Magic Time, then paste it anywhere in a Discord message. Discord replaces the code with the time when the message is sent.</p>
+        </details>
+        <details>
+          <summary>Can I turn a code back into a date?</summary>
+          <p>Yes. Paste a <code>&lt;t:…&gt;</code> code or a Unix timestamp into Magic Time and it shows the date and time it stands for.</p>
+        </details>
+        <details>
+          <summary>Does Magic Time need an internet connection?</summary>
+          <p>No. Everything happens on your device, including holiday dates, and nothing is sent anywhere. See the <a href="privacy.html">privacy policy</a>.</p>
+        </details>
+      </div>
+      <div class="contact">
+        <p>Still stuck, or found a time Magic Time reads wrong? <a href="https://github.com/cjcovell/magic-time/issues/new">Report it on GitHub</a>.</p>
+        <p>Include exactly what you typed and the time zone you picked, so the problem can be reproduced.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p class="links"><a href="privacy.html">Privacy policy</a><a href="https://github.com/cjcovell/magic-time">Source code on GitHub</a></p>
+    <p>© 2026 CJ Covell. Magic Time is not affiliated with Discord Inc.</p>
+  </footer>
+</div>
+
+<script>
+// Rebuild the example around the next Friday at 2 PM New York time, then
+// render it the way Discord would for this reader and three other cities.
+(function () {
+  try {
+    var NY = "America/New_York";
+    var parts = function (date, zone) {
+      var out = {};
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: zone, hourCycle: "h23", year: "numeric", month: "numeric",
+        day: "numeric", hour: "numeric", minute: "numeric", weekday: "short"
+      }).formatToParts(date).forEach(function (p) { out[p.type] = p.value; });
+      return out;
+    };
+    var now = new Date();
+    var today = parts(now, NY);
+    var dayIndex = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(today.weekday);
+    var ahead = (5 - dayIndex + 7) % 7;
+    if (ahead === 0 && Number(today.hour) >= 14) ahead = 7;
+    var y = Number(today.year), m = Number(today.month) - 1, d = Number(today.day) + ahead;
+    var guess = Date.UTC(y, m, d, 14, 0);
+    var wall = parts(new Date(guess), NY);
+    var wallAsUTC = Date.UTC(Number(wall.year), Number(wall.month) - 1, Number(wall.day), Number(wall.hour), Number(wall.minute));
+    var instant = new Date(guess - (wallAsUTC - guess));
+    var unix = Math.round(instant.getTime() / 1000);
+
+    var full = function (zone, locale) {
+      return new Intl.DateTimeFormat(locale, { timeZone: zone, dateStyle: "full", timeStyle: "short" }).format(instant);
+    };
+    document.getElementById("code").textContent = "<t:" + unix + ":F>";
+    var here = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    document.getElementById("you").textContent = full(here, navigator.language || "en-US");
+    var city = here ? here.split("/").pop().replace(/_/g, " ") : "";
+    if (city) document.getElementById("you-label").textContent = "Discord shows you, in " + city;
+
+    var list = document.getElementById("others");
+    list.textContent = "";
+    [["Los Angeles", "America/Los_Angeles"], ["London", "Europe/London"], ["Tokyo", "Asia/Tokyo"]]
+      .filter(function (c) { return c[1] !== here; })
+      .forEach(function (c) {
+        var li = document.createElement("li");
+        var name = document.createElement("span"); name.className = "city"; name.textContent = c[0];
+        var pill = document.createElement("span"); pill.className = "pill"; pill.textContent = full(c[1], "en-US");
+        li.append(name, pill);
+        list.append(li);
+      });
+  } catch (e) { /* the static example stays in place */ }
+})();
+</script>
+</body>
+</html>
