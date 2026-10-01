@@ -41,3 +41,7 @@ Then open **Discord Time** from Spotlight once; after that ⌃⌥⌘T summons it
 - `Sources/App.swift` — menu bar app and login item
 - `Tools/make_icon.swift` — draws the app icon
 - `Tests/main.swift` — parser checks run by `build.sh`
+
+## License
+
+MIT — see [LICENSE](LICENSE).
