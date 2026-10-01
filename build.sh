@@ -14,7 +14,8 @@ rm -rf "$BUILD"
 mkdir -p "$BUILD"
 
 echo "→ Parser checks"
-swiftc -O -o "$BUILD/check" "$ROOT/Sources/TimeParser.swift" "$ROOT/Tests/main.swift"
+swiftc -O -o "$BUILD/check" "$ROOT/Sources/TimeParser.swift" "$ROOT/Sources/NaturalTime.swift" \
+  "$ROOT/Sources/Holidays.swift" "$ROOT/Tests/main.swift"
 "$BUILD/check"
 
 echo "→ Compiling app"

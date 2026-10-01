@@ -16,10 +16,20 @@ date format, and 12/24-hour preference. Magic Time turns your words into that nu
 
 ## Features
 
-- Understands plain English (`tomorrow 9:30am`, `fri 2pm`, `10/14 7pm`), Unix timestamps,
-  and existing `<t:…>` codes — paste one in to decode it
+- **Reads the way you talk**: `tomorrow 9:30am`, `tmrw 8p`, `fri 6-8pm`,
+  `3rd friday in may at 6pm`, `last friday of the month`, `friday after next`, `friday the 13th`,
+  `in 2 hours`, `the 15th of next month`, `5/15 6:30`, `half past 6`, `noon`, `tonight`
+- **Time zones in the text** override the menu: `6pm PT`, `8pm eastern`, `7pm london`, `9am UTC`
+- **Holidays across calendars**, computed from Apple’s own calendar systems — nothing to keep updated:
+  Christian (Western and Orthodox: Easter, Ash Wednesday, Advent, Pentecost…), Jewish (Rosh Hashanah,
+  Yom Kippur, Hanukkah, Passover, “erev …”, “seder”), Islamic (Ramadan, Eid al-Fitr, Eid al-Adha,
+  Ashura, Mawlid — Umm al-Qura), Chinese, Korean, and Vietnamese lunar holidays (Lunar New Year, Tết,
+  Seollal, Mid-Autumn, Chuseok, Dragon Boat, Qingming…), Japanese (Setsubun, equinox days),
+  Nowruz, and US civic holidays
+- **Never guesses**: anything it can’t fully account for shows an empty state, and holidays without
+  one agreed date (Vesak, Obon, a bare “Eid”) explain why instead of picking one
 - Previews all nine Discord styles the way Discord draws them, with **⌘1–⌘9** to copy one directly
-- Reads typed times in Eastern, Central, Mountain, Pacific, or UTC
+- Decodes Unix timestamps and existing `<t:…>` codes
 - Spotlight-style floating panel; lives in the menu bar as `<t:>`, with an optional Open at Login
 - Native SwiftUI, Apple frameworks only, fully offline, no data collected, no Accessibility permission
 
@@ -62,12 +72,15 @@ Then open **Magic Time** from Spotlight once; after that ⌃⌥⌘T summons it.
 
 ## Layout
 
-- `Sources/TimeParser.swift` — text → date (via `NSDataDetector`) and the timestamp styles
+- `Sources/TimeParser.swift` — entry point and the timestamp styles
+- `Sources/NaturalTime.swift` — the natural-language date reader
+- `Sources/Holidays.swift` — holiday rules on Apple’s calendar systems, plus solar terms
 - `Sources/ContentView.swift` — the panel UI
 - `Sources/Launcher.swift` — the floating panel and the global hotkey
 - `Sources/App.swift` — menu bar app and login item
 - `Icon/AppIcon.icon` — the app icon; open it in Icon Composer to edit the layers
-- `Tests/main.swift` — parser checks run by `build.sh`
+- `Tests/main.swift` — 400+ parser checks run by `build.sh`, pinned to a fixed date, including
+  every dated holiday resolved for every year through 2100
 
 ## License
 

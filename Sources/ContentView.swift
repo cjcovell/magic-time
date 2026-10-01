@@ -27,7 +27,8 @@ final class InputModel: ObservableObject {
     }
 
     var zone: ZoneOption { ZoneOption.named(zoneID) }
-    var date: Date? { pickedDate ?? TimeParser.parse(text, in: zone.timeZone) }
+    var reading: Reading { TimeParser.interpret(text, in: zone.timeZone) }
+    var date: Date? { pickedDate ?? reading.date }
     var isEmpty: Bool { text.trimmingCharacters(in: .whitespaces).isEmpty && pickedDate == nil }
 
     func presented() {
@@ -140,9 +141,8 @@ struct ContentView: View {
                 Text(model.zone.timeZone.abbreviation(for: date) ?? model.zone.label)
                     .foregroundStyle(.secondary)
             } else {
-                if !model.isEmpty { Image(systemName: "questionmark.circle") }
-                Text(model.isEmpty ? "Type a time, like “fri 2pm” or “10/14 7pm”, or paste a <t:…> code"
-                                   : "No time found. Try “tomorrow 9:30am” or “fri 2pm”.")
+                Text("Times read as \(model.zone.label)")
+                    .foregroundStyle(.tertiary)
             }
             Spacer()
         }
@@ -159,6 +159,7 @@ struct ContentView: View {
         let date = model.date ?? TimeParser.floorToMinute(now)
         let usable = model.date != nil
 
+        // The rows always lay out (so the panel never changes size) but only show for a real date.
         return VStack(spacing: 2) {
             ForEach(Array(DiscordStyle.allCases.enumerated()), id: \.element) { index, style in
                 FormatRow(
@@ -177,8 +178,31 @@ struct ContentView: View {
             }
         }
         .padding(8)
-        .opacity(usable ? 1 : 0.35)
+        .opacity(usable ? 1 : 0)
+        .overlay { if !usable { emptyState } }
+        .animation(.easeOut(duration: 0.15), value: usable)
         .animation(.easeOut(duration: 0.12), value: model.selectedStyle)
+    }
+
+    /// Shown instead of the rows when there's no date: an invitation, a miss, or an honest "can't say".
+    @ViewBuilder
+    private var emptyState: some View {
+        switch (model.isEmpty, model.reading) {
+        case (true, _):
+            EmptyStateView(
+                symbol: "sparkles",
+                title: "Type a time",
+                message: "Try “fri 8pm PT” or “3rd friday in may at 6pm”."
+            )
+        case (false, .note(let why)):
+            EmptyStateView(symbol: "calendar.badge.exclamationmark", title: "Magic Time won’t guess this one", message: why)
+        default:
+            EmptyStateView(
+                symbol: "calendar",
+                title: "No date or time in that",
+                message: "Try “tomorrow 9:30am”, “the 15th at noon”, or “christmas eve 7pm”."
+            )
+        }
     }
 
     private var footer: some View {
@@ -242,6 +266,31 @@ private struct FormatRow: View {
             KeyCap("⌘\(number)")
                 .foregroundStyle(.tertiary)
         }
+    }
+}
+
+private struct EmptyStateView: View {
+    let symbol: String
+    let title: String
+    let message: String
+
+    var body: some View {
+        VStack(spacing: 10) {
+            Image(systemName: symbol)
+                .font(.system(size: 34, weight: .light))
+                .foregroundStyle(.tertiary)
+                .symbolRenderingMode(.hierarchical)
+            Text(title)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Text(message)
+                .font(.callout)
+                .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 360)
+        }
+        .padding(24)
+        .transition(.opacity)
     }
 }
 

@@ -20,39 +20,38 @@ struct ZoneOption: Identifiable, Hashable {
     }
 }
 
+/// What a piece of text means: a moment, a reason we won't pick one, or nothing recognizable.
+enum Reading: Equatable {
+    case moment(Date)
+    case note(String)
+    case nothing
+
+    var date: Date? { if case .moment(let d) = self { d } else { nil } }
+}
+
 enum TimeParser {
-    private static let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.date.rawValue)
-
-    /// Reads free text — "tomorrow 9:30am", "fri 2pm", "10/14 7pm", a Unix timestamp,
-    /// or an existing `<t:…>` tag — as a moment. Wall-clock times are read in `zone`
-    /// unless the text names its own zone.
-    static func parse(_ text: String, in zone: TimeZone) -> Date? {
+    /// Reads free text — "tomorrow 9:30am", "3rd friday in may 6pm", "lunar new year 7pm PT",
+    /// a Unix timestamp, or an existing `<t:…>` tag. Wall-clock times are read in `zone` unless
+    /// the text names its own. Never guesses: anything it can't fully account for is `.nothing`.
+    static func interpret(_ text: String, in zone: TimeZone, now: Date = .now) -> Reading {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return nil }
+        guard !trimmed.isEmpty else { return .nothing }
 
-        if let tag = trimmed.firstMatch(of: #/<t:(-?\d+)(?::[tTdDfFR])?>/#), let seconds = Int(tag.1) {
-            return Date(timeIntervalSince1970: TimeInterval(seconds))
+        if let tag = trimmed.firstMatch(of: #/<t:(-?\d+)(?::[tTdDfFsSR])?>/#), let seconds = Int(tag.1) {
+            return .moment(Date(timeIntervalSince1970: TimeInterval(seconds)))
         }
         if trimmed.count >= 9, let seconds = Int(trimmed) {
-            return Date(timeIntervalSince1970: TimeInterval(seconds))
+            return .moment(Date(timeIntervalSince1970: TimeInterval(seconds)))
         }
 
-        let range = NSRange(trimmed.startIndex..., in: trimmed)
-        guard let match = detector?.firstMatch(in: trimmed, range: range), let found = match.date else {
-            return nil
+        switch NaturalTime(zone: zone, now: now).parse(trimmed) {
+        case .moment(let date): return .moment(floorToMinute(date))
+        case let other: return other
         }
+    }
 
-        var date = found
-        // The detector reads times in the Mac's own zone; re-read the same wall clock in `zone`.
-        if match.timeZone == nil, zone.identifier != TimeZone.current.identifier {
-            var local = Calendar(identifier: .gregorian)
-            local.timeZone = .current
-            let parts = local.dateComponents([.year, .month, .day, .hour, .minute], from: found)
-            var target = local
-            target.timeZone = zone
-            date = target.date(from: parts) ?? found
-        }
-        return floorToMinute(date)
+    static func parse(_ text: String, in zone: TimeZone, now: Date = .now) -> Date? {
+        interpret(text, in: zone, now: now).date
     }
 
     static func floorToMinute(_ date: Date) -> Date {
