@@ -1,0 +1,17 @@
+name: Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  parser-and-mac-build:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parser checks, command, and Mac app
+        run: ./build.sh --no-install
