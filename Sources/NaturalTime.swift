@@ -57,6 +57,8 @@ private struct Reader {
     private var defaultClock: Clock?                   // from "morning", "dinner", "tonight"
     private var meridiemHint: Meridiem?
     private var addDayForMidnight = false
+    private var dayIsThisWeekday = false               // "this thursday": never roll to next week
+    private var looseZoneWord = false                  // a zone word away from any time: ambiguous
 
     init(tokens: [String], zone: TimeZone, now: Date) {
         self.tokens = tokens
@@ -73,6 +75,7 @@ private struct Reader {
     mutating func read() -> Reading {
         // Time zones first, so relative days ("today", "friday") are computed in the right zone.
         markTimeZones()
+        if looseZoneWord { return .nothing }
         while i < tokens.count, !failed {
             if consumed.contains(i) { i += 1; continue }
             if !matchAnything() {
@@ -122,6 +125,13 @@ private struct Reader {
         var k = 0
         while k < tokens.count {
             if let id = Vocabulary.timeZones[tokens[k]], let tz = TimeZone(identifier: id) {
+                // "8pm PT", "PT 8pm", "8 pm eastern time" — never "la fitness" or "mt hood".
+                let before = k > 0 ? tokens[k - 1] : "", after = k + 1 < tokens.count ? tokens[k + 1] : ""
+                guard Vocabulary.isClockWord(before) || Vocabulary.isClockWord(after) else {
+                    looseZoneWord = true
+                    k += 1
+                    continue
+                }
                 if zoneOverride != nil, zoneOverride != tz { failed = true }
                 zoneOverride = tz
                 consumed.insert(k)
@@ -200,16 +210,50 @@ private struct Reader {
                 note = message
                 fail()
             case .days(let rule):
-                let cal = calendar
-                let today = CivilDay(now, in: cal.timeZone)
-                let anchor = year.flatMap { cal.date(from: DateComponents(year: $0, month: 6, day: 1)) } ?? now
-                let days = rule(anchor).map { $0.adding(days: shift) }
-                let pick = year.map { y in days.first { $0.year == y } } ?? days.first { $0 >= today }
-                if let pick { setDay(DayComponents(pick)) } else { fail() }
+                let observances = rule(anchor(for: year)).map { Observance(day: $0, alternative: nil) }
+                apply(pick(observances, year: year, shift: shift), name: nil)
+            case .observances(let name, let rule):
+                apply(pick(rule(anchor(for: year)), year: year, shift: shift), name: name)
             }
             return true
         }
         return false
+    }
+
+    private func anchor(for year: Int?) -> Date {
+        year.flatMap { calendar.date(from: DateComponents(year: $0, month: 6, day: 1)) } ?? now
+    }
+
+    /// The occurrence in `year`, or the next one from today; `shift` moves to the eve.
+    private func pick(_ observances: [Observance], year: Int?, shift: Int) -> Observance? {
+        let today = CivilDay(now, in: calendar.timeZone)
+        let shift = { (o: Observance) in
+            Observance(day: o.day.adding(days: shift), alternative: o.alternative?.adding(days: shift))
+        }
+        // "new year's eve 2027" means the eve of 2027's holiday, so match the year before shifting.
+        if let year { return observances.first { $0.day.year == year }.map(shift) }
+        return observances.map(shift).first { ($0.alternative ?? $0.day) >= today }
+    }
+
+    private mutating func apply(_ observance: Observance?, name: String?) {
+        guard let observance else { fail(); return }
+        if let other = observance.alternative {
+            // Almanacs disagree this year: say so instead of choosing.
+            let f = DateFormatter()
+            f.locale = Locale(identifier: "en_US")
+            f.setLocalizedDateFormatFromTemplate("MMMd")
+            var cal = Calendar(identifier: .gregorian)
+            cal.timeZone = TimeZone(identifier: "UTC")!
+            f.timeZone = cal.timeZone
+            func text(_ d: CivilDay) -> String {
+                f.string(from: cal.date(from: DateComponents(year: d.year, month: d.month, day: d.day, hour: 12))!)
+            }
+            note = "\(name ?? "It") \(observance.day.year) falls on \(text(observance.day)) or \(text(other)), "
+                + "depending on the almanac you follow. Type the date instead, for example, “\(text(other).lowercased()) 7pm”."
+            fail()
+            return
+        }
+        setDay(DayComponents(observance.day))
     }
 
     /// "3rd friday in may", "last friday of the month", "first monday of next month", "2nd tuesday".
@@ -222,6 +266,11 @@ private struct Reader {
         var monthOffset = 0
         var year: Int?
 
+        if ordinal == -1, token(length) != "in", token(length) != "of" {
+            // Bare "last friday" could mean the previous Friday or the month's last; don't pick.
+            fail()
+            return true
+        }
         if token(length) == "in" || token(length) == "of" {
             var k = length + 1
             if token(k) == "the" { k += 1 }
@@ -243,7 +292,6 @@ private struct Reader {
         let cal = calendar
         let today = cal.startOfDay(for: now)
         let thisYear = cal.component(.year, from: now)
-        let thisMonth = cal.component(.month, from: now)
 
         func nth(year: Int, month: Int) -> Date? {
             let parts = DateComponents(year: year, month: month, weekday: weekday, weekdayOrdinal: ordinal)
@@ -262,7 +310,6 @@ private struct Reader {
                 let next = cal.date(byAdding: .month, value: 1, to: base)!
                 candidates.append((cal.component(.year, from: next), cal.component(.month, from: next)))
             }
-            _ = thisMonth
         }
         for (y, m) in candidates {
             guard let date = nth(year: y, month: m) else {
@@ -314,7 +361,7 @@ private struct Reader {
     }
 
     /// "this friday", "next friday", "friday after next", "this weekend", "next weekend",
-    /// "next week", "next month", "next year", a bare "friday", "last friday".
+    /// "next week", "next month", "next year", and a bare "friday".
     private mutating func matchThisNextWeekday() -> Bool {
         let cal = calendar
         switch (token(), token(1)) {
@@ -332,18 +379,12 @@ private struct Reader {
             break
         }
         if token() == "this", let wd = token(1).flatMap({ Vocabulary.weekdays[$0] }) {
-            take(2); setDay(upcomingWeekday(wd, weeksAhead: 0)); return true
+            take(2); setDay(upcomingWeekday(wd, weeksAhead: 0)); dayIsThisWeekday = true; return true
         }
         if token() == "next", let wd = token(1).flatMap({ Vocabulary.weekdays[$0] }) {
             take(2)
             if token() == "week" { take(1) }
             setDay(nextWeeksWeekday(wd))
-            return true
-        }
-        if token() == "last", let wd = token(1).flatMap({ Vocabulary.weekdays[$0] }) {
-            take(2)
-            let upcoming = cal.date(from: upcomingWeekday(wd, weeksAhead: 0).components)!
-            setDay(DayComponents(date: cal.date(byAdding: .day, value: -7, to: upcoming)!, calendar: cal))
             return true
         }
         if let wd = token().flatMap({ Vocabulary.weekdays[$0] }) {
@@ -526,7 +567,7 @@ private struct Reader {
     /// "quarter to 7", and ranges ("6-8pm", "6 to 8pm") which keep the start time.
     private mutating func matchTime() -> Bool {
         var k = 0
-        let afterAt = token() == "at" || token() == "@"
+        let afterAt = token() == "at"
         if afterAt { k = 1 }
 
         // half past / quarter past / quarter to
@@ -541,12 +582,16 @@ private struct Reader {
         }
 
         guard let t = token(k), var start = Clock.parse(t, allowMilitary: afterAt) else { return false }
-        if start.meridiem == nil, start.isTwelveHourAmbiguous, !afterAt, token(k + 1).map(Meridiem.init) == nil,
+        if start.meridiem == nil, !afterAt, token(k + 1).flatMap(Meridiem.init) == nil,
            token(k + 1) != "o'clock", token(k + 1) != "oclock", !t.contains(":") {
             // A bare number like "6" only counts as a time next to a day word ("friday 6").
-            guard day != nil || (token(k + 1).map { Vocabulary.weekdays[$0] != nil || $0 == "tomorrow" || $0 == "today" } ?? false) else {
-                return false
-            }
+            // …or when it starts a range that ends in a clear time ("11-1pm", "6 to 8pm").
+            let startsRange = token(k + 1).map { ["-", "to", "until", "till", "til"].contains($0) } == true
+                && token(k + 2).flatMap { Clock.parse($0, allowMilitary: false) }?.meridiem != nil
+            let followsDay = day != nil && i > 0 && consumed.contains(i - 1)
+            let link = ["on", "this", "next"].contains(token(k + 1) ?? "") ? 2 : 1
+            let precedesDay = token(k + link).map(Vocabulary.isDayWord) ?? false
+            guard followsDay || startsRange || precedesDay else { return false }
         }
         take(k + 1)
         if start.meridiem == nil { start.meridiem = takeMeridiem() }
@@ -586,7 +631,7 @@ private struct Reader {
 
         let cal = calendar
         let today = DayComponents(date: now, calendar: cal)
-        var target = day ?? today
+        let target = day ?? today
 
         if let weekdayCheck, let date = cal.date(from: target.components), cal.component(.weekday, from: date) != weekdayCheck {
             return nil
@@ -604,8 +649,8 @@ private struct Reader {
             result = am > now ? am : pm
         } else {
             if time.meridiem == nil, time.isTwelveHourAmbiguous {
-                // On a named day, 1–6 reads as afternoon/evening, 7–11 as morning.
-                time.meridiem = (1...6).contains(time.hour) ? .pm : .am
+                // On a named day, 12 is noon, 1–6 reads as afternoon/evening, 7–11 as morning.
+                time.meridiem = (time.hour == 12 || (1...6).contains(time.hour)) ? .pm : .am
             }
             result = cal.date(from: target.at(time))!
         }
@@ -615,11 +660,13 @@ private struct Reader {
         if !explicitDay, result < now {
             // "8pm" after 8pm means tomorrow.
             result = cal.date(byAdding: .day, value: 1, to: result)!
+        } else if dayIsThisWeekday, result < now {
+            // "this thursday 8am" said Thursday afternoon: today's 8 AM is gone, and next week isn't "this".
+            return nil
         } else if dayIsBareWeekday, result < now {
             // "friday 8am" on a Friday afternoon means next Friday.
             result = cal.date(byAdding: .day, value: 7, to: result)!
         }
-        target = DayComponents(date: result, calendar: cal)
         return result
     }
 }
@@ -763,6 +810,18 @@ private enum Vocabulary {
         return nil
     }
 
+    /// Words a bare hour can attach to: "6 tonight", "8 morning", "7 fri", "6 tmrw".
+    static func isDayWord(_ token: String) -> Bool {
+        weekdays[token] != nil || isTomorrow(token) || partsOfDay[token] != nil
+            || ["today", "tonight", "tonite", "noon", "midnight"].contains(token)
+    }
+
+    /// A time or a piece of one, for deciding whether a zone word is attached to a time.
+    static func isClockWord(_ token: String) -> Bool {
+        if token.firstMatch(of: #/^\d{1,2}(:\d\d)?(am|pm|a|p)?$/#) != nil { return true }
+        return ["am", "pm", "a", "p", "noon", "midnight", "o'clock", "oclock", "time"].contains(token)
+    }
+
     static func isTomorrow(_ token: String?) -> Bool {
         ["tomorrow", "tmrw", "tmr", "tomorow", "tommorow", "tommorrow", "tmw"].contains(token ?? "")
     }
@@ -788,10 +847,10 @@ private enum Vocabulary {
         "akst": "America/Anchorage", "akdt": "America/Anchorage", "alaska": "America/Anchorage",
         "hst": "Pacific/Honolulu", "hawaii": "Pacific/Honolulu",
         "arizona": "America/Phoenix", "phoenix": "America/Phoenix",
-        "utc": "UTC", "gmt": "Europe/London", "bst": "Europe/London", "uk": "Europe/London", "london": "Europe/London",
+        "utc": "UTC", "gmt": "Europe/London", "bst": "Europe/London", "london": "Europe/London",
         "cet": "Europe/Paris", "cest": "Europe/Paris", "paris": "Europe/Paris", "berlin": "Europe/Berlin",
         "amsterdam": "Europe/Amsterdam", "madrid": "Europe/Madrid", "rome": "Europe/Rome", "stockholm": "Europe/Stockholm",
-        "ist": "Asia/Kolkata", "india": "Asia/Kolkata",
+        "ist": "Asia/Kolkata", "delhi": "Asia/Kolkata", "mumbai": "Asia/Kolkata",
         "jst": "Asia/Tokyo", "tokyo": "Asia/Tokyo", "kst": "Asia/Seoul", "seoul": "Asia/Seoul",
         "sgt": "Asia/Singapore", "singapore": "Asia/Singapore", "hkt": "Asia/Hong_Kong",
         "aest": "Australia/Sydney", "aedt": "Australia/Sydney", "sydney": "Australia/Sydney", "melbourne": "Australia/Melbourne",
@@ -801,7 +860,7 @@ private enum Vocabulary {
     ]
 
     static let fillers: Set<String> = [
-        "at", "@", "on", "the", "of", "in", "by", "from", "around", "about", "approx", "approximately",
+        "at", "on", "the", "of", "in", "by", "from", "around", "about", "approx", "approximately",
         "starting", "starts", "start", "begins", "beginning", "-", "o'clock", "oclock", "time", "this", "and", "for",
     ]
 

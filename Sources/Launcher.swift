@@ -69,7 +69,7 @@ final class LauncherPanel: NSPanel {
         }
     }
 
-    /// ⌘1–⌘7 copy a format. Editing shortcuts are routed here too, since an agent app's
+    /// ⌘1–⌘9 copy a format. Editing shortcuts are routed here too, since an agent app's
     /// hidden main menu can't be relied on to deliver them to a non-activating panel.
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
         let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)

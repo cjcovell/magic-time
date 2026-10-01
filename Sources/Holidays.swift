@@ -28,10 +28,18 @@ struct CivilDay: Hashable, Comparable {
     }
 }
 
+/// One year's observance: a single day, or two days when traditions disagree.
+struct Observance {
+    let day: CivilDay
+    let alternative: CivilDay?
+}
+
 /// What a holiday name means: a rule that yields its days, or a reason we won't pick one.
 enum HolidayEntry {
     /// Occurrences around `now`, ascending.
     case days((Date) -> [CivilDay])
+    /// Occurrences that may be contested between almanacs; `name` is used in the explanation.
+    case observances(name: String, (Date) -> [Observance])
     /// Known, but its date can't be placed honestly (varies by country, or which one is ambiguous).
     case note(String)
 }
@@ -43,7 +51,11 @@ enum HolidayCatalog {
     /// Every holiday that resolves to dates, for the long-range stability check.
     static var datedRules: [(name: String, rule: (Date) -> [CivilDay])] {
         table.compactMap { name, entry in
-            if case .days(let rule) = entry { return (name, rule) } else { return nil }
+            switch entry {
+            case .days(let rule): return (name, rule)
+            case .observances(_, let rule): return (name, { rule($0).map(\.day) })
+            case .note: return nil
+            }
         }.sorted { $0.name < $1.name }
     }
 
@@ -187,7 +199,7 @@ enum HolidayCatalog {
     private static let persianNewYear = lunar(.persian, "Asia/Tehran", month: 1, day: 1)
 
     private static func unknown(_ name: String, _ why: String) -> HolidayEntry {
-        .note("\(name) \(why) Type the date instead, like “nov 8 7pm”.")
+        .note("\(name) \(why) Type the date instead, for example, “nov 8 7pm”.")
     }
 
     // MARK: Table
@@ -204,14 +216,17 @@ enum HolidayCatalog {
         add(["valentine's day", "valentines", "valentine's"], fixed(2, 14))
         add(["st patrick's day", "st patricks", "saint patrick's day", "st paddy's day", "paddy's day"], fixed(3, 17))
         add(["mother's day", "mothers day"], nth(2, 1, 5))
+        add(["mothering sunday", "uk mother's day"], easter(plus: -21))
         add(["memorial day"], nth(-1, 2, 5))
         add(["father's day", "fathers day"], nth(3, 1, 6))
         add(["juneteenth"], fixed(6, 19))
-        add(["independence day", "fourth of july", "july fourth", "4th of july"], fixed(7, 4))
+        add(["fourth of july", "july fourth", "4th of july", "us independence day", "american independence day"], fixed(7, 4))
+        add(["independence day"], .note("Independence Day depends on the country. Try “fourth of july” for the US, or type the date."))
         add(["labor day", "labour day"], nth(1, 2, 9))
         add(["halloween"], fixed(10, 31))
         add(["veterans day"], fixed(11, 11))
-        add(["thanksgiving", "thanksgiving day", "us thanksgiving"], nth(4, 5, 11))
+        add(["thanksgiving", "thanksgiving day", "us thanksgiving", "american thanksgiving"], nth(4, 5, 11))
+        add(["canadian thanksgiving", "thanksgiving canada"], nth(2, 2, 10))
         add(["black friday"], nth(4, 5, 11, plus: 1))
 
         // Christian (Western)
@@ -220,21 +235,21 @@ enum HolidayCatalog {
         add(["boxing day", "st stephen's day"], fixed(12, 26))
         add(["epiphany", "three kings day", "twelfth night"], fixed(1, 6))
         add(["candlemas", "presentation of the lord"], fixed(2, 2))
-        add(["annunciation", "lady day"], fixed(3, 25))
-        add(["assumption", "assumption of mary", "feast of the assumption"], fixed(8, 15))
+        add(["annunciation", "feast of the annunciation"], fixed(3, 25))
+        add(["assumption of mary", "feast of the assumption", "assumption day"], fixed(8, 15))
         add(["all saints day", "all saints", "all hallows"], fixed(11, 1))
         add(["all souls day", "all souls"], fixed(11, 2))
         add(["immaculate conception", "feast of the immaculate conception"], fixed(12, 8))
-        add(["advent", "first sunday of advent", "advent sunday"], advent)
+        add(["first sunday of advent", "advent sunday", "start of advent"], advent)
         add(["mardi gras", "fat tuesday", "shrove tuesday", "pancake day", "pancake tuesday"], easter(plus: -47))
-        add(["ash wednesday", "lent", "start of lent", "beginning of lent"], easter(plus: -46))
-        add(["palm sunday", "holy week"], easter(plus: -7))
+        add(["ash wednesday", "start of lent", "beginning of lent", "first day of lent"], easter(plus: -46))
+        add(["palm sunday"], easter(plus: -7))
         add(["maundy thursday", "holy thursday"], easter(plus: -3))
         add(["good friday"], easter(plus: -2))
         add(["holy saturday", "easter saturday", "easter vigil"], easter(plus: -1))
         add(["easter", "easter sunday", "resurrection sunday"], easter(plus: 0))
         add(["easter monday"], easter(plus: 1))
-        add(["ascension", "ascension day", "ascension thursday"], easter(plus: 39))
+        add(["ascension day", "ascension thursday", "feast of the ascension"], easter(plus: 39))
         add(["pentecost", "whitsun", "whit sunday", "whitsunday"], easter(plus: 49))
         add(["whit monday", "pentecost monday"], easter(plus: 50))
         add(["trinity sunday"], easter(plus: 56))
@@ -255,7 +270,8 @@ enum HolidayCatalog {
         add(["sukkot", "succot", "sukkos", "feast of tabernacles"], hebrew(1, 15))
         add(["shemini atzeret"], hebrew(1, 22))
         add(["simchat torah", "simchas torah"], hebrew(1, 23))
-        add(["hanukkah", "chanukah", "hanukah", "chanukkah", "channukah", "festival of lights"], hebrew(3, 25))
+        add(["hanukkah", "chanukah", "hanukah", "chanukkah", "channukah"], hebrew(3, 25))
+        add(["festival of lights"], .note("Hanukkah and Diwali are both called the Festival of Lights. Type “hanukkah” or “diwali” instead."))
         add(["tu bishvat", "tu b'shvat", "tu bshvat"], hebrew(5, 15))
         add(["purim"], hebrew(7, 14))
         add(["passover", "pesach", "pesah"], hebrew(8, 15))
@@ -284,7 +300,7 @@ enum HolidayCatalog {
         add(["lunar new year's eve", "chinese new year's eve", "chuxi", "new year's eve lunar", "reunion dinner"], chinese(1, 1, plus: -1))
         add(["lantern festival", "yuanxiao", "yuan xiao", "shangyuan", "chap goh mei"], chinese(1, 15))
         add(["qingming", "qing ming", "ching ming", "tomb sweeping day", "tomb sweeping festival", "qingming festival"], solarTerm(15, "Asia/Shanghai", near: 4, 5))
-        add(["dragon boat festival", "duanwu", "duan wu", "tuen ng", "double fifth"], chinese(5, 5))
+        add(["dragon boat festival", "dragon boat", "duanwu", "duan wu", "tuen ng", "double fifth"], chinese(5, 5))
         add(["qixi", "qi xi", "double seventh", "chinese valentine's day", "magpie festival"], chinese(7, 7))
         add(["ghost festival", "hungry ghost festival", "zhongyuan", "zhong yuan", "ullambana", "yu lan"], chinese(7, 15))
         add(["mid autumn festival", "mid-autumn festival", "mooncake festival", "moon festival", "zhongqiu", "zhong qiu", "mid autumn"], chinese(8, 15))
@@ -318,21 +334,37 @@ enum HolidayCatalog {
         add(["tanabata"], fixed(7, 7))
         add(["shichi go san", "shichigosan"], fixed(11, 15))
         add(["bodhi day", "rohatsu"], fixed(12, 8))
-        add(["obon", "bon festival"], .note("Obon is mid-August in most of Japan but July in Tokyo and some regions. Type the date instead, like “aug 13 6pm”."))
+        add(["obon", "bon festival"], .note("Obon is in mid-August in most of Japan, but in July in Tokyo and some other regions. Type the date instead, for example, “aug 13 6pm”."))
 
         // Persian / Central Asian
         add(["nowruz", "norouz", "nauryz", "persian new year", "iranian new year"], persianNewYear)
 
         // Buddhist (Theravada / Tibetan) — date depends on country or a calendar we can't compute
         add(["vesak", "wesak", "visakha bucha", "vesak day", "buddha purnima", "buddha day", "saga dawa"],
-            .note("Vesak falls on different days by country. Type the date instead, like “may 31 7pm”."))
+            .note("Vesak falls on different days in different countries. Type the date instead, for example, “may 31 7pm”."))
         add(["losar", "tibetan new year"], unknown("Losar", "follows the Tibetan calendar, which Magic Time can’t compute yet."))
         add(["magha puja", "makha bucha", "asalha puja", "asanha bucha", "kathina", "uposatha"],
             .note("Theravada full-moon holidays vary by country. Type the date instead."))
 
         // South Asian — regional calendars we don't compute; say so rather than guess
-        for (names, label) in [(["diwali", "deepavali", "divali"], "Diwali"), (["holi"], "Holi"),
-                               (["navratri", "navaratri"], "Navratri"), (["dussehra", "dasara", "vijayadashami"], "Dussehra"),
+        if #available(macOS 26, iOS 26, *) {
+            func hindu(_ festival: HinduFestivals.Festival, _ name: String) -> HolidayEntry {
+                .observances(name: name) { now in
+                    let year = CivilDay(now, in: HinduFestivals.ist).year
+                    return ((year - 1)...(year + 2)).compactMap { HinduFestivals.observance(festival, gregorianYear: $0) }
+                }
+            }
+            add(["diwali", "deepavali", "divali", "deepawali", "lakshmi puja", "laxmi puja"], hindu(.diwali, "Diwali"))
+            add(["holi", "rangwali holi", "dhulandi", "dhuleti", "phagwah", "festival of colors", "festival of colours"], hindu(.holi, "Holi"))
+            add(["holika dahan", "chhoti holi", "choti holi", "holika"], hindu(.holikaDahan, "Holika Dahan"))
+        } else {
+            add(["diwali", "deepavali", "divali", "deepawali", "lakshmi puja", "laxmi puja"],
+                .note("Calculating Diwali requires macOS 26 or later. Type the date instead, for example, “nov 8 7pm”."))
+            add(["holi", "rangwali holi", "dhulandi", "dhuleti", "phagwah", "festival of colors", "festival of colours",
+                 "holika dahan", "chhoti holi", "choti holi", "holika"],
+                .note("Calculating Holi requires macOS 26 or later. Type the date instead, for example, “mar 4 2pm”."))
+        }
+        for (names, label) in [(["navratri", "navaratri"], "Navratri"), (["dussehra", "dasara", "vijayadashami"], "Dussehra"),
                                (["raksha bandhan", "rakhi"], "Raksha Bandhan"), (["janmashtami"], "Janmashtami"),
                                (["ganesh chaturthi"], "Ganesh Chaturthi"), (["karva chauth"], "Karva Chauth"),
                                (["pongal", "makar sankranti"], "Makar Sankranti"), (["vaisakhi", "baisakhi"], "Vaisakhi")] {

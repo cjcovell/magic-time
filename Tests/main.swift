@@ -103,22 +103,25 @@ check("easter", at(2027, 3, 28))
 check("good friday", at(2027, 3, 26))
 check("ash wednesday", at(2027, 2, 10))
 check("orthodox easter", at(2027, 5, 2))
-check("advent", at(2026, 11, 29))
+check("first sunday of advent", at(2026, 11, 29))
 
 // MARK: Holidays — Chinese, Korean, Vietnamese, Japanese
 check("lunar new year 7pm", at(2027, 2, 6, 19))
 check("chinese new year", at(2027, 2, 6))
 check("spring festival", at(2027, 2, 6))
 check("cny eve", at(2027, 2, 5))
-check("tết", at(2027, 2, 6))
-check("seollal", at(2027, 2, 7))                      // Seoul's new moon falls a day later in 2027
-check("chuseok", at(2027, 9, 15))
 check("mid-autumn festival", at(2027, 9, 15))
 check("dragon boat festival", at(2027, 6, 9))
 check("lantern festival", at(2027, 2, 20))
 check("qingming", at(2027, 4, 5))
 check("dongzhi", at(2026, 12, 22))
 check("setsubun", at(2027, 2, 3))
+
+if #available(macOS 26, *) {                           // Korean and Vietnamese calendars arrived in macOS 26
+    check("tết", at(2027, 2, 6))
+    check("seollal", at(2027, 2, 7))                  // Seoul's new moon falls a day later in 2027
+    check("chuseok", at(2027, 9, 15))
+}
 
 // MARK: Holidays — Jewish (first full day; erev = evening before)
 check("rosh hashanah", at(2027, 10, 2))
@@ -141,8 +144,89 @@ check("nowruz", at(2027, 3, 21))
 checkNote("eid")
 checkNote("vesak")
 checkNote("obon")
-checkNote("diwali")
+checkNote("navratri")
 checkNote("losar")
+
+// MARK: Diwali and Holi (macOS 26 Indian calendars + Sun/Moon astronomy at New Delhi)
+// Reference: Drik Panchang (New Delhi) and Government of India DoPT holiday lists, 2015–2035.
+// "a|b" = sources disagree that year, so Magic Time reports both instead of choosing.
+if #available(macOS 26, *) {
+    check("diwali 7pm", at(2026, 11, 8, 19))
+    check("lakshmi puja", at(2026, 11, 8))
+    checkNote("holi")                                  // next Holi is 2027: Mar 22 (Drik) or Mar 23 (DoPT)
+    checkNote("diwali 2024")                           // Oct 31 (DoPT) or Nov 1 (Drik)
+    check("holi 2023", at(2023, 3, 8))
+    check("holika dahan 2026", at(2026, 3, 3))
+
+    let reference: [(Int, String, String, String)] = [   // year, Diwali, Holika Dahan, Holi
+        (2015, "11-11", "03-05", "03-06"), (2016, "10-30", "03-23", "03-24"), (2017, "10-19", "03-12", "03-13"),
+        (2018, "11-07", "03-01", "03-02"), (2019, "10-27", "03-20", "03-21"), (2020, "11-14", "03-09", "03-10"),
+        (2021, "11-04", "03-28", "03-29"), (2022, "10-24", "03-17", "03-18"), (2023, "11-12", "03-07", "03-08"),
+        (2024, "10-31|11-01", "03-24", "03-25"), (2025, "10-20", "03-13", "03-14"), (2026, "11-08", "03-03", "03-04"),
+        (2027, "10-29", "03-21|03-22", "03-22|03-23"), (2028, "10-17", "03-10", "03-11"), (2029, "11-05", "02-28", "03-01"),
+        (2030, "10-26", "03-19", "03-20"), (2031, "11-14", "03-08", "03-09"), (2032, "11-02", "03-26", "03-27"),
+        (2033, "10-22", "03-15", "03-16"), (2034, "11-10", "03-04", "03-05"), (2035, "10-30", "03-23", "03-24"),
+    ]
+    // Years where the tithi misses every sunset (Drik Panchang, New Delhi).
+    let shortTithi: [(Int, HinduFestivals.Festival, String)] = [
+        (2036, .diwali, "10-18"), (2046, .diwali, "10-29"), (2055, .diwali, "10-20"), (2065, .diwali, "10-29"),
+        (2074, .diwali, "10-19"), (2075, .diwali, "11-07"), (2098, .diwali, "10-23"), (2099, .diwali, "11-12"),
+        (2046, .holikaDahan, "03-21"), (2046, .holi, "03-22"), (2065, .holikaDahan, "03-21"), (2065, .holi, "03-22"),
+    ]
+    func text(_ o: Observance?) -> String {
+        guard let o else { return "none" }
+        let one = { (d: CivilDay) in String(format: "%02d-%02d", d.month, d.day) }
+        return o.alternative.map { one(o.day) + "|" + one($0) } ?? one(o.day)
+    }
+    for (year, diwali, dahan, holi) in reference {
+        for (festival, want) in [(HinduFestivals.Festival.diwali, diwali), (.holikaDahan, dahan), (.holi, holi)] {
+            let got = text(HinduFestivals.observance(festival, gregorianYear: year))
+            if got == want { passes += 1 } else { failures += 1; print("FAIL  \(festival) \(year): got \(got), want \(want)") }
+        }
+    }
+    for (year, festival, want) in shortTithi {
+        let got = text(HinduFestivals.observance(festival, gregorianYear: year))
+        if got == want { passes += 1 } else { failures += 1; print("FAIL  \(festival) \(year): got \(got), want \(want)") }
+    }
+}
+
+// MARK: Fresh-eyes regressions: never a silent guess
+check("raid 15", nil)                                  // a bare number is not 3 PM
+check("friday 18", at(2026, 10, 2, 18))                // …but next to a day it's a 24-hour time
+check("bring 2 friends", nil)                          // a leading or middle number is not a time either
+check("15 raid", nil)
+check("top 10 list", nil)
+check("need 3 players fri", nil)
+check("6 tmrw", at(2026, 10, 2, 18))
+check("6 to 8pm fri", at(2026, 10, 2, 18))
+check("friday 12", at(2026, 10, 2, 12))                // noon, not the midnight that starts Friday
+check("friday at 12", at(2026, 10, 2, 12))
+check("dragon boat", at(2027, 6, 9))
+check("6 tonight", at(2026, 10, 1, 18))                // a bare hour attached to a day word still works
+check("8 morning", at(2026, 10, 2, 8))
+check("7 this friday", at(2026, 10, 2, 7))
+check("6 on friday", at(2026, 10, 2, 18))
+check("fri need 3 players", nil)                       // …but not a number that merely shares the text
+check("pt session fri 9am", nil)                       // zone words only count next to a time
+check("la fitness fri 8pm", nil)
+check("mt hood hike sat 9am", nil)
+check("fri 8 pm eastern time", at(2026, 10, 2, 20))
+check("PT 8pm fri", at(2026, 10, 2, 20, 0, pacific))
+check("new year's eve 2027", at(2027, 12, 31))         // the eve of 2027's holiday is Dec 31, 2027
+check("erev rosh hashanah 2027", at(2027, 10, 1))
+check("this thursday 8am", nil)                        // already past today; next week isn't "this"
+check("this thursday 6pm", at(2026, 10, 1, 18))
+check("last friday", nil)                              // previous Friday or last of the month?
+check("last friday of the month 8pm", at(2026, 10, 30, 20))
+check("advent of code sat 8pm", at(2026, 10, 3, 20))   // not the Advent holiday
+check("I lent it fri 8pm", at(2026, 10, 2, 20))
+check("india vs pakistan sat 9am", at(2026, 10, 3, 9)) // “india” isn’t a time zone
+check("9am mumbai", at(2026, 10, 2, 9, 0, TimeZone(identifier: "Asia/Kolkata")!))
+checkNote("festival of lights")
+checkNote("independence day")
+check("fourth of july 9pm", at(2027, 7, 4, 21))
+check("canadian thanksgiving", at(2026, 10, 12))
+check("mothering sunday", at(2027, 3, 7))
 
 // MARK: Unknown → nothing
 check("banana", nil)

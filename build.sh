@@ -15,8 +15,12 @@ mkdir -p "$BUILD"
 
 echo "→ Parser checks"
 swiftc -O -o "$BUILD/check" "$ROOT/Sources/TimeParser.swift" "$ROOT/Sources/NaturalTime.swift" \
-  "$ROOT/Sources/Holidays.swift" "$ROOT/Tests/main.swift"
+  "$ROOT/Sources/Holidays.swift" "$ROOT/Sources/HinduFestivals.swift" "$ROOT/Tests/main.swift"
 "$BUILD/check"
+
+echo "→ Compiling the magic-time command"
+swiftc -O -o "$BUILD/magic-time" "$ROOT/Sources/TimeParser.swift" "$ROOT/Sources/NaturalTime.swift" \
+  "$ROOT/Sources/Holidays.swift" "$ROOT/Sources/HinduFestivals.swift" "$ROOT/CLI/main.swift"
 
 echo "→ Compiling app"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
@@ -63,9 +67,13 @@ if [[ "${1:-}" != "--no-install" ]]; then
   rm -rf "$DEST"
   ditto "$APP" "$DEST"
   mdimport "$DEST" 2>/dev/null || true
+  mkdir -p "$HOME/.local/bin"
+  install -m 755 "$BUILD/magic-time" "$HOME/.local/bin/magic-time"
+  echo "→ Installed the magic-time command to ~/.local/bin"
   # Bring back a copy that was running, quietly, so ⌃⌥⌘T keeps working.
   if $was_running; then
-    open -g "$DEST" --args --background
+    # Launch Services can need a moment to register the new copy.
+    for _ in 1 2 3; do open -g "$DEST" --args --background 2>/dev/null && break; sleep 1; done
   fi
 fi
 echo "✓ Done"

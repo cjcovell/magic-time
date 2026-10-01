@@ -6,12 +6,12 @@ final class InputModel: ObservableObject {
     private let defaults = UserDefaults.standard
 
     @Published var text = "" {
-        didSet { if text != oldValue { pickedDate = nil } }
+        didSet { if text != oldValue { pickedDate = nil; reread() } }
     }
     @Published var pickedDate: Date?
     @Published var copiedStyle: DiscordStyle?
     @Published var zoneID: String {
-        didSet { defaults.set(zoneID, forKey: "zone"); pickedDate = nil }
+        didSet { defaults.set(zoneID, forKey: "zone"); pickedDate = nil; reread() }
     }
     @Published var selectedStyle: DiscordStyle {
         didSet { defaults.set(selectedStyle.rawValue, forKey: "style") }
@@ -27,12 +27,16 @@ final class InputModel: ObservableObject {
     }
 
     var zone: ZoneOption { ZoneOption.named(zoneID) }
-    var reading: Reading { TimeParser.interpret(text, in: zone.timeZone) }
+    /// The parse of `text`, refreshed when the text or zone changes (holidays can involve real math).
+    @Published private(set) var reading: Reading = .nothing
+
+    private func reread() { reading = TimeParser.interpret(text, in: zone.timeZone) }
     var date: Date? { pickedDate ?? reading.date }
     var isEmpty: Bool { text.trimmingCharacters(in: .whitespaces).isEmpty && pickedDate == nil }
 
     func presented() {
         copiedStyle = nil
+        reread()                                    // relative phrases ("in 2 hours") move with time
         presentation += 1
     }
 
@@ -117,7 +121,7 @@ struct ContentView: View {
             .menuStyle(.borderlessButton)
             .fixedSize()
             .foregroundStyle(.secondary)
-            .help("Read typed times in this time zone")
+            .help("Choose the time zone for times you type")
         }
         .padding(.horizontal, 20)
         .padding(.top, 20)
@@ -141,7 +145,7 @@ struct ContentView: View {
                 Text(model.zone.timeZone.abbreviation(for: date) ?? model.zone.label)
                     .foregroundStyle(.secondary)
             } else {
-                Text("Times read as \(model.zone.label)")
+                Text(model.zone.id == "UTC" ? "Times you type use UTC" : "Times you type use \(model.zone.label) time")
                     .foregroundStyle(.tertiary)
             }
             Spacer()
@@ -199,7 +203,7 @@ struct ContentView: View {
         default:
             EmptyStateView(
                 symbol: "calendar",
-                title: "No date or time in that",
+                title: "No date or time found",
                 message: "Try “tomorrow 9:30am”, “the 15th at noon”, or “christmas eve 7pm”."
             )
         }
@@ -209,7 +213,7 @@ struct ContentView: View {
         HStack(spacing: 14) {
             KeyHint(key: "↩", label: "Copy")
             KeyHint(key: "⌘1–\(DiscordStyle.allCases.count)", label: "Copy format")
-            KeyHint(key: "↑↓", label: "Choose")
+            KeyHint(key: "↑↓", label: "Select")
             KeyHint(key: "esc", label: "Close")
             Spacer()
             KeyHint(key: "⌃⌥⌘T", label: "Open anywhere")
