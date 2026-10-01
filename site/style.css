@@ -169,3 +169,20 @@ footer .links { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-botto
   .demo { padding: 1.25rem; border-radius: 16px; }
   .top nav { gap: 1rem; }
 }
+
+/* App screenshots */
+.shots { display: grid; grid-template-columns: repeat(2, minmax(0, 15rem)); gap: 1.5rem; margin-top: 2.25rem; }
+.shots figure { margin: 0; }
+.shots img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 28px;
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+.shots figcaption { margin-top: 0.6rem; font-size: 0.95rem; color: var(--muted); }
+@media (max-width: 30rem) {
+  .shots { gap: 0.9rem; }
+  .shots img { border-radius: 18px; }
+}
