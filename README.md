@@ -14,7 +14,7 @@ Press **⌃⌥⌘T** anywhere, type a time, press **↩**, and paste into Discor
 
 ## Build
 
-Requires macOS 14+ and the Xcode Command Line Tools (full Xcode not needed).
+Requires macOS 14+ and Xcode (for `actool`, which compiles the Icon Composer icon).
 
 ```sh
 ./build.sh               # runs the parser checks, builds, installs to ~/Applications
@@ -39,7 +39,7 @@ Then open **Discord Time** from Spotlight once; after that ⌃⌥⌘T summons it
 - `Sources/ContentView.swift` — the panel UI
 - `Sources/Launcher.swift` — the floating panel and the global hotkey
 - `Sources/App.swift` — menu bar app and login item
-- `Tools/make_icon.swift` — draws the app icon
+- `Icon/AppIcon.icon` — the app icon; open it in Icon Composer to edit the layers
 - `Tests/main.swift` — parser checks run by `build.sh`
 
 ## License

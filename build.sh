@@ -1,5 +1,6 @@
 #!/bin/zsh
 # Builds Discord Time.app and installs it to ~/Applications (Spotlight indexes it there).
+# Requires Xcode (actool compiles the Icon Composer icon).
 # Usage: ./build.sh            test, build, install
 #        ./build.sh --no-install
 set -euo pipefail
@@ -23,8 +24,10 @@ swiftc -O -parse-as-library -target arm64-apple-macos14.0 \
   "$ROOT"/Sources/*.swift
 
 echo "→ Icon"
-swift "$ROOT/Tools/make_icon.swift" "$BUILD/AppIcon.iconset"
-iconutil -c icns -o "$APP/Contents/Resources/AppIcon.icns" "$BUILD/AppIcon.iconset"
+# Icon Composer document → Assets.car (macOS 26+ Liquid Glass) + AppIcon.icns (older macOS).
+xcrun actool "$ROOT/Icon/AppIcon.icon" --compile "$APP/Contents/Resources" \
+  --platform macosx --minimum-deployment-target 14.0 --app-icon AppIcon \
+  --output-partial-info-plist "$BUILD/icon-partial.plist" >/dev/null
 
 cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -36,6 +39,7 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
   <key>CFBundleIdentifier</key><string>cc.covell.discordtime</string>
   <key>CFBundleExecutable</key><string>DiscordTime</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
+  <key>CFBundleIconName</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>1.0</string>
   <key>CFBundleVersion</key><string>1</string>
