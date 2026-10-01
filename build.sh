@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Builds Discord Time.app and installs it to ~/Applications (Spotlight indexes it there).
+# Builds Magic Time.app and installs it to ~/Applications (Spotlight indexes it there).
 # Requires Xcode (actool compiles the Icon Composer icon).
 # Usage: ./build.sh            test, build, install
 #        ./build.sh --no-install
@@ -7,8 +7,8 @@ set -euo pipefail
 
 ROOT=${0:A:h}
 BUILD="$ROOT/build"
-APP="$BUILD/Discord Time.app"
-DEST="$HOME/Applications/Discord Time.app"
+APP="$BUILD/Magic Time.app"
+DEST="$HOME/Applications/Magic Time.app"
 
 rm -rf "$BUILD"
 mkdir -p "$BUILD"
@@ -20,7 +20,7 @@ swiftc -O -o "$BUILD/check" "$ROOT/Sources/TimeParser.swift" "$ROOT/Tests/main.s
 echo "→ Compiling app"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 swiftc -O -parse-as-library -target arm64-apple-macos14.0 \
-  -o "$APP/Contents/MacOS/DiscordTime" \
+  -o "$APP/Contents/MacOS/MagicTime" \
   "$ROOT"/Sources/*.swift
 
 echo "→ Icon"
@@ -34,10 +34,10 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>CFBundleName</key><string>Discord Time</string>
-  <key>CFBundleDisplayName</key><string>Discord Time</string>
-  <key>CFBundleIdentifier</key><string>cc.covell.discordtime</string>
-  <key>CFBundleExecutable</key><string>DiscordTime</string>
+  <key>CFBundleName</key><string>Magic Time</string>
+  <key>CFBundleDisplayName</key><string>Magic Time</string>
+  <key>CFBundleIdentifier</key><string>cc.covell.magictime</string>
+  <key>CFBundleExecutable</key><string>MagicTime</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundleIconName</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
@@ -55,7 +55,7 @@ codesign --force --sign - "$APP"
 
 if [[ "${1:-}" != "--no-install" ]]; then
   echo "→ Installing to $DEST"
-  pkill -x DiscordTime 2>/dev/null || true
+  pkill -x MagicTime 2>/dev/null || true
   rm -rf "$DEST"
   ditto "$APP" "$DEST"
   mdimport "$DEST" 2>/dev/null || true

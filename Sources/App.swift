@@ -4,7 +4,7 @@ import ServiceManagement
 import SwiftUI
 
 @main
-struct DiscordTimeApp: App {
+struct MagicTimeApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
@@ -12,7 +12,7 @@ struct DiscordTimeApp: App {
             MenuContent(delegate: appDelegate, loginItem: appDelegate.loginItem)
         } label: {
             Image(nsImage: .menuBarGlyph)
-                .accessibilityLabel("Discord Time")
+                .accessibilityLabel("Magic Time")
         }
     }
 }
@@ -89,12 +89,12 @@ private struct MenuContent: View {
     @ObservedObject var loginItem: LoginItem
 
     var body: some View {
-        Button("Open Discord Time") { delegate.showPanel() }
+        Button("Open Magic Time") { delegate.showPanel() }
             .keyboardShortcut("t", modifiers: [.control, .option, .command])
         Divider()
         Toggle("Open at Login", isOn: Binding(get: { loginItem.isEnabled }, set: { loginItem.set($0) }))
         Divider()
-        Button("Quit Discord Time") { NSApp.terminate(nil) }
+        Button("Quit Magic Time") { NSApp.terminate(nil) }
             .keyboardShortcut("q")
     }
 }

@@ -23,7 +23,7 @@ final class InputModel: ObservableObject {
 
     init() {
         zoneID = defaults.string(forKey: "zone") ?? ZoneOption.all[0].id
-        selectedStyle = defaults.string(forKey: "style").flatMap(DiscordStyle.init(rawValue:)) ?? .longDateTime
+        selectedStyle = defaults.string(forKey: "style").flatMap(DiscordStyle.init(rawValue:)) ?? .fullDateShortTime
     }
 
     var zone: ZoneOption { ZoneOption.named(zoneID) }
@@ -74,7 +74,6 @@ struct ContentView: View {
         }
         .frame(width: 540)
         .background(.regularMaterial)
-        .ignoresSafeArea()
         .tint(.blurple)
         .onAppear(perform: focusField)
         .onChange(of: model.presentation) { focusField() }
@@ -185,7 +184,7 @@ struct ContentView: View {
     private var footer: some View {
         HStack(spacing: 14) {
             KeyHint(key: "↩", label: "Copy")
-            KeyHint(key: "⌘1–7", label: "Copy format")
+            KeyHint(key: "⌘1–\(DiscordStyle.allCases.count)", label: "Copy format")
             KeyHint(key: "↑↓", label: "Choose")
             KeyHint(key: "esc", label: "Close")
             Spacer()

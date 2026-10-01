@@ -12,6 +12,8 @@ final class LauncherPanel: NSPanel {
     init(model: InputModel) {
         self.model = model
         hostingView = NSHostingView(rootView: ContentView(model: model))
+        // The title bar is hidden, so don't let its inset pad the top and inflate the fitting size.
+        hostingView.safeAreaRegions = []
         super.init(
             contentRect: .zero,
             styleMask: [.titled, .fullSizeContentView, .nonactivatingPanel],
@@ -119,7 +121,7 @@ final class GlobalHotKey {
         }, 1, &eventType, Unmanaged.passUnretained(self).toOpaque(), &handlerRef)
         guard status == noErr else { return nil }
 
-        let id = EventHotKeyID(signature: OSType(0x4454_4D45), id: 1) // 'DTME'
+        let id = EventHotKeyID(signature: OSType(0x4D47_544D), id: 1) // 'MGTM'
         guard RegisterEventHotKey(keyCode, modifiers, id, GetApplicationEventTarget(), 0, &hotKeyRef) == noErr else {
             return nil
         }

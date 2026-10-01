@@ -61,27 +61,32 @@ enum TimeParser {
     }
 }
 
-/// Discord's `<t:unix:style>` timestamp styles.
+/// Discord's `<t:unix:style>` timestamp styles, in the order the panel lists them (⌘1–⌘9).
+/// Names follow Discord's developer docs; `f` is the style Discord uses when none is given.
 enum DiscordStyle: String, CaseIterable, Identifiable {
-    case longDateTime = "F"
-    case shortDateTime = "f"
+    case fullDateShortTime = "F"
+    case longDateShortTime = "f"
+    case shortDateShortTime = "s"
     case shortTime = "t"
     case relative = "R"
     case longDate = "D"
     case shortDate = "d"
-    case longTime = "T"
+    case mediumTime = "T"
+    case shortDateMediumTime = "S"
 
     var id: String { rawValue }
 
     var name: String {
         switch self {
-        case .longDateTime: "Full"
-        case .shortDateTime: "Date & time"
-        case .shortTime: "Time"
-        case .relative: "Countdown"
-        case .longDate: "Date"
+        case .fullDateShortTime: "Full date, short time"
+        case .longDateShortTime: "Long date, short time (default)"
+        case .shortDateShortTime: "Short date, short time"
+        case .shortTime: "Short time"
+        case .relative: "Relative time"
+        case .longDate: "Long date"
         case .shortDate: "Short date"
-        case .longTime: "Time + seconds"
+        case .mediumTime: "Medium time"
+        case .shortDateMediumTime: "Short date, medium time"
         }
     }
 
@@ -92,10 +97,12 @@ enum DiscordStyle: String, CaseIterable, Identifiable {
     /// Roughly what Discord renders for a viewer in this Mac's time zone.
     func preview(for date: Date, now: Date = .now) -> String {
         switch self {
-        case .longDateTime:
+        case .fullDateShortTime:
             date.formatted(.dateTime.weekday(.wide).month(.wide).day().year().hour().minute())
-        case .shortDateTime:
+        case .longDateShortTime:
             date.formatted(date: .long, time: .shortened)
+        case .shortDateShortTime:
+            date.formatted(date: .numeric, time: .shortened)
         case .shortTime:
             date.formatted(date: .omitted, time: .shortened)
         case .relative:
@@ -106,8 +113,10 @@ enum DiscordStyle: String, CaseIterable, Identifiable {
             date.formatted(date: .long, time: .omitted)
         case .shortDate:
             date.formatted(date: .numeric, time: .omitted)
-        case .longTime:
+        case .mediumTime:
             date.formatted(date: .omitted, time: .standard)
+        case .shortDateMediumTime:
+            date.formatted(date: .numeric, time: .standard)
         }
     }
 

@@ -32,7 +32,11 @@ expect("gibberish", TimeParser.parse("banana", in: eastern), nil)
 expect("empty", TimeParser.parse("   ", in: eastern), nil)
 
 let sample = Date(timeIntervalSince1970: 1790947800)
-print("      F → \(DiscordStyle.longDateTime.code(for: sample))  \(DiscordStyle.longDateTime.preview(for: sample))")
-print("      R → \(DiscordStyle.relative.code(for: sample))  \(DiscordStyle.relative.preview(for: sample))")
+let letters = DiscordStyle.allCases.map(\.rawValue).sorted().joined()
+if letters == "DFRSTdfst" { print("ok    all nine Discord styles") } else { failures += 1; print("FAIL  styles: \(letters)") }
+if DiscordStyle.shortDateShortTime.code(for: sample) == "<t:1790947800:s>" { print("ok    s code") } else { failures += 1; print("FAIL  s code") }
+for style in DiscordStyle.allCases {
+    print("      \(style.rawValue) → \(style.code(for: sample))  \(style.preview(for: sample))")
+}
 
 exit(failures == 0 ? 0 : 1)
