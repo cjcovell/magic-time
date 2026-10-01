@@ -18,6 +18,4 @@ Known gaps and planned work, roughly in priority order.
 
 ## Later
 
-- Show the store listing’s familiar U.S. holidays (Christmas, Thanksgiving, the Fourth of July,
-  Valentine’s Day) alongside the cross-calendar ones in examples, so every audience sees itself.
 - Localize the app and listing beyond U.S. English.
