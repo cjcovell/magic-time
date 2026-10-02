@@ -29,7 +29,8 @@ command, and the Claude skill in `skill/magic-time`.
   date. After changing the prompt or the guard, run `scripts/suggestion-eval.sh` and read every
   suggestion it prints: “readable” is checked for you, “right” is not.
 - `scripts/screenshots.sh` takes every App Store screenshot (see the store-screenshots skill).
-  `build.sh` deletes `build/`, so archives and screenshots live in `../magic-time-store-assets`.
+  `build.sh` deletes `build/`, so archives and screenshots live in `../magic-time-store-assets`,
+  a private repo (`cjcovell/magic-time-store-assets`): commit and push there after each upload.
 - App Store archives: the iOS target archives unsigned (`CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
   CODE_SIGNING_ALLOWED=NO`), because the account has no registered devices; `-exportArchive` signs it.
 - Describe the parser on its own terms; don’t compare it to other apps by name.
