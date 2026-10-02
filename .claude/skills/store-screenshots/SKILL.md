@@ -41,7 +41,8 @@ Open one image from each folder and confirm:
 - the footer under the field says what the current build says (it changed once already, from
   “Eastern time” to “your local time”)
 - the Mac panel is centered on the backdrop, with the full-date format highlighted
-- `6-suggests-a-phrase` shows “Did you mean “15th 8:30pm”?” under the field. The suggestion comes
+- `6-suggests-a-phrase` shows “Use “15th 8:30pm”” under the field and “Did you mean “15th 8:30pm”?”
+  in the middle of the screen. The suggestion comes
   from Apple’s on-device model, so it needs Apple Intelligence turned on for this Mac, and its
   wording can vary; rerun the script if it’s missing or reads oddly
 

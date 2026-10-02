@@ -21,7 +21,7 @@ Known gaps and planned work, roughly in priority order.
 
 ## Done, waiting for the next App Store update
 
-Version 1.0 (build 3), replacing build 1 before launch:
+Version 1.0 (build 4), replacing build 1 before launch:
 
 - The time zone picker starts on the device’s own zone (“Local”) and lists cities worldwide;
   Siri, Shortcuts, and `magic-time --zone` take the same choices.

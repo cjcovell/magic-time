@@ -81,7 +81,7 @@ struct RootView: View {
                 Button {
                     model.acceptSuggestion()
                 } label: {
-                    Label("Did you mean “\(suggestion.phrase)”?", systemImage: "sparkles")
+                    Label("Use “\(suggestion.phrase)”", systemImage: "sparkles")
                 }
             }
         } footer: {
@@ -155,6 +155,12 @@ struct RootView: View {
                 Label("Magic Time won’t guess this one", systemImage: "calendar.badge.exclamationmark")
             } description: {
                 Text(why)
+            }
+        case (false, _) where model.suggestion != nil:
+            ContentUnavailableView {
+                Label("Did you mean “\(model.suggestion?.phrase ?? "")”?", systemImage: "sparkles")
+            } description: {
+                Text("Tap the suggestion to use it. It comes from Apple Intelligence, on this device.")
             }
         default:
             ContentUnavailableView {

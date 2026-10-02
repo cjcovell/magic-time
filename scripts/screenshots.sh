@@ -83,9 +83,14 @@ for w in all where (w["kCGWindowOwnerName"] as? String) == "Magic Time" && (w["k
 mkdir -p "$WORK/panels"
 for n in {1..$#PHRASES}; do
   open -n "$MACAPP" --args -MTPrefill "$PHRASES[$n]" -style F -zone local -NSRequiresAquaSystemAppearance YES
-  sleep 6
-  window=$(panel_window)
+  window=""
+  for wait in {1..20}; do                             # a freshly built app can take a while to open
+    window=$(panel_window)
+    [[ -n "$window" ]] && break
+    sleep 1
+  done
   [[ -n "$window" ]] || { echo "The Mac panel didn’t open."; exit 1; }
+  sleep 5                                             # long enough for a suggestion to arrive
   captured=false
   for try in {1..5}; do                               # a window that just opened can refuse once
     screencapture -x -l "$window" "$WORK/panels/$NAMES[$n].png" 2>/dev/null && { captured=true; break }

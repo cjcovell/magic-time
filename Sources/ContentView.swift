@@ -197,7 +197,7 @@ struct ContentView: View {
                 Button {
                     model.acceptSuggestion()
                 } label: {
-                    Label("Did you mean “\(suggestion.phrase)”?", systemImage: "sparkles")
+                    Label("Use “\(suggestion.phrase)”", systemImage: "sparkles")
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(Color.accentColor)
@@ -258,6 +258,12 @@ struct ContentView: View {
             )
         case (false, .note(let why)):
             EmptyStateView(symbol: "calendar.badge.exclamationmark", title: "Magic Time won’t guess this one", message: why)
+        case (false, _) where model.suggestion != nil:
+            EmptyStateView(
+                symbol: "sparkles",
+                title: "Did you mean “\(model.suggestion?.phrase ?? "")”?",
+                message: "Press Return to use it. The suggestion comes from Apple Intelligence, on this Mac."
+            )
         default:
             EmptyStateView(
                 symbol: "calendar",
