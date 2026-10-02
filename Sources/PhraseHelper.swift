@@ -17,24 +17,50 @@ enum PhraseHelper {
     /// Short inputs are the reader's job; only sentences are worth a second opinion.
     static let minimumWords = 4
 
+    /// The model's answers vary from one request to the next, so a rejected rewrite gets another try.
+    static let attempts = 3
+
     static func suggestion(for text: String, in zone: TimeZone, now: Date = .now) async -> Suggestion? {
         guard text.split(whereSeparator: \.isWhitespace).count >= minimumWords else { return nil }
-        guard let reply = await shorten(text) else { return nil }
+        for _ in 0..<attempts {
+            guard let reply = await shorten(text) else { return nil }           // no model on this device
+            if let suggestion = accept(reply, for: text, in: zone, now: now) { return suggestion }
+            if reply.lowercased().contains("none") { return nil }               // the model sees no time here
+        }
+        return nil
+    }
+
+    /// Every check a rewrite must pass before anyone sees it: it's short, it keeps the sentence's
+    /// meaning, and the reader, by its own rules, turns it into a moment.
+    static func accept(_ reply: String, for text: String, in zone: TimeZone, now: Date = .now) -> Suggestion? {
         let phrase = reply.trimmingCharacters(in: .whitespacesAndNewlines.union(CharacterSet(charactersIn: "\"“”."))).lowercased()
         guard !phrase.isEmpty, phrase != "none", phrase.count <= 60, keepsMeaning(of: text, in: phrase) else { return nil }
         guard case .moment(let date) = TimeParser.interpret(phrase, in: zone, now: now) else { return nil }
         return Suggestion(phrase: phrase, date: date)
     }
 
-    /// Words that move a date. The model sometimes drops them ("next saturday" → "sat"), which
-    /// would silently change the day, so a rewrite that loses one is thrown away.
-    static let shiftWords: Set<String> = [
-        "next", "after", "before", "last", "following", "from", "other", "every", "ago", "weeks", "week",
-    ]
-
+    /// The model drops words ("third friday of may" → "fri"), swaps them ("christmas" → "chrissy"),
+    /// and adds zones nobody mentioned ("8:30pm est"). Each of those would silently change the
+    /// answer, so a rewrite is thrown away unless it:
+    /// - names exactly the same days, dates, months, and holidays as the sentence,
+    /// - names the same zones (or one the sentence described in words: "west coast", "new york time"),
+    /// - and adds no word that is neither from the sentence nor one the reader knows.
     static func keepsMeaning(of original: String, in phrase: String) -> Bool {
-        let kept = Set(NaturalTime.tokenize(phrase))
-        return NaturalTime.tokenize(original).allSatisfy { !shiftWords.contains($0) || kept.contains($0) }
+        guard NaturalTime.dateWords(in: original) == NaturalTime.dateWords(in: phrase) else { return false }
+
+        let words = NaturalTime.tokenize(original)
+        let named = NaturalTime.zones(in: original), suggested = NaturalTime.zones(in: phrase)
+        guard named.isSubset(of: suggested) else { return false }
+        guard suggested.isSubset(of: named) || speaksOfAZone(words) else { return false }
+
+        let said = Set(words)
+        return NaturalTime.tokenize(phrase).allSatisfy { said.contains($0) || NaturalTime.isKnownWord($0) }
+    }
+
+    private static func speaksOfAZone(_ words: [String]) -> Bool {
+        if words.contains("coast") || words.contains("zone") || words.contains("timezone") { return true }
+        let articles: Set<String> = ["what", "the", "a", "any", "some", "this", "that", "which", "same", "good"]
+        return words.indices.contains { words[$0] == "time" && $0 > 0 && !articles.contains(words[$0 - 1]) }
     }
 
     private static let instructions = """

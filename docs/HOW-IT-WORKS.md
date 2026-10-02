@@ -39,8 +39,10 @@ converts the current time.
 
 When the reader finds nothing in a sentence of four or more words, `PhraseHelper` may ask Apple’s
 on-device model (Foundation Models, iOS 26 and macOS 26 or later with Apple Intelligence) for a
-shorter phrase. The phrase is offered as “Did you mean…?” only if it keeps every date-shifting
-word of the original (`keepsMeaning`) and the reader parses it; nothing changes until it’s accepted.
+shorter phrase, asking up to three times. The phrase is offered as “Did you mean…?” only if it names
+exactly the same days, dates, months, holidays, and zones as the sentence and adds no made-up word
+(`keepsMeaning`), and the reader parses it; nothing changes until it’s accepted.
+`scripts/suggestion-eval.sh` runs a set of sentences through the real model for a person to review.
 
 The same four parser files (`TimeParser`, `NaturalTime`, `Holidays`, `HinduFestivals`) are compiled
 into the test runner (`Tests/main.swift`), and into the `magic-time` command (`CLI/main.swift`),

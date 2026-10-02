@@ -24,8 +24,14 @@ command, and the Claude skill in `skill/magic-time`.
 - Apple frameworks only, fully offline. No packages, no network, no analytics.
 - Discord has nine timestamp styles (t T d D f F s S R); the apps list them F f s t R D d T S.
 - Apple Intelligence (`Sources/PhraseHelper.swift`) may only suggest a phrase: the reader must parse
-  the suggestion itself, `keepsMeaning` must pass, and the person must accept it. Never let the
-  model produce a date.
+  the suggestion itself, `keepsMeaning` must pass (same days, dates, months, holidays, and zones as
+  the sentence; no made-up words), and the person must accept it. Never let the model produce a
+  date. After changing the prompt or the guard, run `scripts/suggestion-eval.sh` and read every
+  suggestion it prints: “readable” is checked for you, “right” is not.
+- `scripts/screenshots.sh` takes every App Store screenshot (see the store-screenshots skill).
+  `build.sh` deletes `build/`, so archives and screenshots live in `../magic-time-store-assets`.
+- App Store archives: the iOS target archives unsigned (`CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+  CODE_SIGNING_ALLOWED=NO`), because the account has no registered devices; `-exportArchive` signs it.
 - Describe the parser on its own terms; don’t compare it to other apps by name.
 - Say “not affiliated with Discord Inc.” wherever Discord is named in marketing copy.
 - The website lives in `site/` and deploys to GitHub Pages on push. Its privacy policy must stay

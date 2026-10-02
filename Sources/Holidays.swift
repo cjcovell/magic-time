@@ -48,6 +48,9 @@ enum HolidayCatalog {
     /// `phrase` is lowercased, apostrophes removed, hyphens as spaces, single-spaced.
     static func lookup(_ phrase: String) -> HolidayEntry? { table[phrase] }
 
+    /// Every word that appears in a holiday's name, for checking that a rewrite kept them.
+    static let nameWords: Set<String> = Set(table.keys.flatMap { $0.split(separator: " ").map(String.init) })
+
     /// Every holiday that resolves to dates, for the long-range stability check.
     static var datedRules: [(name: String, rule: (Date) -> [CivilDay])] {
         table.compactMap { name, entry in

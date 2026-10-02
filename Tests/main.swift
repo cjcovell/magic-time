@@ -339,6 +339,22 @@ expect(!PhraseHelper.keepsMeaning(of: "let's meet next saturday evening at quart
 expect(!PhraseHelper.keepsMeaning(of: "movie night two fridays from now at 9", in: "fri 9pm"), "a rewrite that drops “from now” is refused")
 expect(PhraseHelper.keepsMeaning(of: "the friday after thanksgiving around 8", in: "friday after thanksgiving 8pm"), "a rewrite that keeps “after” is kept")
 
+expect(!PhraseHelper.keepsMeaning(of: "raid on the 15th, eight thirty at night", in: "15th 8:30pm est"), "a rewrite that invents a zone is refused")
+expect(PhraseHelper.keepsMeaning(of: "the 15th at eight thirty at night for the west coast folks", in: "15th 8:30pm pt"), "“west coast” may become PT")
+expect(PhraseHelper.keepsMeaning(of: "saturday quarter past seven, new york time", in: "sat 7:15pm est"), "“new york time” may become EST")
+expect(!PhraseHelper.keepsMeaning(of: "what time works, the 15th eight thirty at night", in: "15th 8:30pm est"), "“what time” doesn’t license a zone")
+expect(!PhraseHelper.keepsMeaning(of: "call me the third friday of may around six in the evening", in: "fri 6pm"), "a rewrite that drops “third … of may” is refused")
+expect(PhraseHelper.keepsMeaning(of: "call me the third friday of may around six in the evening", in: "3rd fri of may 6pm"), "“third friday of may” may become “3rd fri of may”")
+expect(!PhraseHelper.keepsMeaning(of: "lunch on christmas eve at about one in the afternoon", in: "chrissy eve 1pm"), "a rewrite with a made-up word is refused")
+expect(!PhraseHelper.keepsMeaning(of: "lunch on christmas eve at about one in the afternoon", in: "1pm"), "a rewrite that drops the holiday is refused")
+expect(PhraseHelper.keepsMeaning(of: "lunch on christmas eve at about one in the afternoon", in: "christmas eve 1pm"), "a rewrite that keeps the holiday is kept")
+expect(PhraseHelper.keepsMeaning(of: "game night this friday around eight at night pacific", in: "fri 8pm pt"), "“pacific” and “pt” are the same zone")
+expect(!PhraseHelper.keepsMeaning(of: "game night this friday around eight at night pacific", in: "fri 8pm"), "a rewrite that drops the zone is refused")
+expect(!PhraseHelper.keepsMeaning(of: "the 15th at eight thirty at night", in: "tomorrow 8:30pm"), "a rewrite that adds a day is refused")
+expect(PhraseHelper.accept("15th 8:30pm", for: "the 15th at eight thirty at night", in: eastern, now: now)?.date == at(2026, 10, 15, 20, 30), "an accepted suggestion carries the reader’s own date")
+expect(PhraseHelper.accept("the fifteenth, half eight-ish", for: "the 15th at eight thirty at night", in: eastern, now: now) == nil, "a rewrite the reader can’t read is never shown")
+expect(PhraseHelper.accept("none", for: "what should we eat tonight then", in: eastern, now: now) == nil, "“none” is never shown")
+
 // MARK: Time zone choices
 
 let localCity = TimeZone.current.identifier.split(separator: "/").last.map { $0.replacingOccurrences(of: "_", with: " ") } ?? ""

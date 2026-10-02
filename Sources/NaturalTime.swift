@@ -25,6 +25,49 @@ struct NaturalTime {
         return (reading, reading.date == nil ? nil : reader.shownZone)
     }
 
+    /// The zones a text names, as identifiers, so "pacific" and "pt" count as the same one.
+    static func zones(in text: String) -> Set<String> {
+        Set(tokenize(text).compactMap { Vocabulary.timeZones[$0] })
+    }
+
+    /// The words that fix a text's date, in one spelling each ("sat" and "saturday" are the same
+    /// weekday; "3rd" and "third" the same ordinal). Two texts that mean the same day have the
+    /// same set; a rewrite that drops "next", "third", "may", or "christmas" does not.
+    static func dateWords(in text: String) -> Set<String> {
+        let shifts: Set<String> = [
+            "today", "tonight", "yesterday", "next", "after", "before", "last", "following", "from", "other",
+            "every", "ago", "week", "weeks", "weekend", "month", "months", "year", "years", "day", "days", "now",
+        ]
+        let genericHolidayWords: Set<String> = ["day", "night", "new", "the", "of", "al", "el", "st", "first", "last"]
+        var found = Set<String>()
+        for raw in tokenize(text) {
+            let token = raw == "tonite" ? "tonight" : HolidayCatalog.normalize(raw)
+            if let weekday = Vocabulary.weekdays[token] ?? Vocabulary.weekdays[String(token.dropLast())].flatMap({ token.hasSuffix("s") ? $0 : nil }) {
+                found.insert("weekday \(weekday)")
+            } else if let month = Vocabulary.months[token] {
+                found.insert("month \(month)")
+            } else if let nth = Vocabulary.weekdayOrdinal(token), nth > 0 {
+                found.insert("nth \(nth)")
+            } else if let m = token.firstMatch(of: #/^(\d{1,2})(st|nd|rd|th)$/#) {
+                found.insert("nth \(Int(m.1)!)")
+            } else if Vocabulary.isTomorrow(token) {
+                found.insert("tomorrow")
+            } else if shifts.contains(token) {
+                found.insert(token)
+            } else if Vocabulary.timeZones[token] == nil, HolidayCatalog.nameWords.contains(token), !genericHolidayWords.contains(token),
+                      !Vocabulary.fillers.contains(token) {
+                found.insert("holiday \(token)")
+            }
+        }
+        return found
+    }
+
+    /// Whether a word in a rewrite is one the reader knows on its own: a time, a zone, a date word.
+    static func isKnownWord(_ token: String) -> Bool {
+        Vocabulary.isClockWord(token) || Clock.parse(token, allowMilitary: false) != nil || Vocabulary.timeZones[token] != nil
+            || Vocabulary.fillers.contains(token) || !dateWords(in: token).isEmpty
+    }
+
     static func tokenize(_ text: String) -> [String] {
         var s = text.lowercased().folding(options: .diacriticInsensitive, locale: Locale(identifier: "en_US"))
         for (from, to) in [("a.m.", "am"), ("p.m.", "pm"), ("’", "'"), ("–", "-"), ("—", "-")] {
