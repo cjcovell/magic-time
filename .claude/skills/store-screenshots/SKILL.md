@@ -56,7 +56,11 @@ first, so no screenshot shows “No date or time found” by accident.
 
 App Store Connect only accepts new screenshots while the version is editable (not while it is
 “Waiting for Review” or “In Review”). When replacing a set, use Delete All on that display size
-first; uploading on top of an existing set adds to it and can leave duplicates. The user uploads
+first; uploading on top of an existing set adds to it and can leave duplicates. Upload the files
+one at a time, in the order they should appear: several files chosen at once land in a random
+order, and the first three are what people see in search results. The order used for 1.0 is
+1, 2, 3, 6 (the Apple Intelligence suggestion), 4, 5. Uploading only iPhone 6.9", iPad 13", and Mac
+is enough; the smaller sizes fall back to those. The user uploads
 iPhone and iPad screenshots themselves unless they ask otherwise.
 
 ## If it fails
