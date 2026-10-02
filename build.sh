@@ -10,7 +10,8 @@ BUILD="$ROOT/build"
 APP="$BUILD/Magic Time.app"
 DEST="/Applications/Magic Time.app"
 
-rm -rf "$BUILD"
+# Finder can re-create .DS_Store while this runs, so one failed delete gets a second try.
+rm -rf "$BUILD" 2>/dev/null || { sleep 1; rm -rf "$BUILD"; }
 mkdir -p "$BUILD"
 
 echo "→ Parser checks"
