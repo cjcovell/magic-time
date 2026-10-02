@@ -20,8 +20,11 @@ date format, and 12/24-hour preference. Magic Time turns your words into that nu
 
 - **Reads the way you talk**: `tomorrow 9:30am`, `tmrw 8p`, `fri 6-8pm`,
   `3rd friday in may at 6pm`, `last friday of the month`, `friday after next`, `friday the 13th`,
-  `in 2 hours`, `the 15th of next month`, `5/15 6:30`, `half past 6`, `noon`, `tonight`
-- **Time zones in the text** override the menu: `6pm PT`, `8pm eastern`, `7pm london`, `9am UTC`
+  `in 2 hours`, `the 15th of next month`, `5/15 6:30`, `half past 6`, `noon`, `tonight`, `830am`,
+  `fri at 930`
+- **Time zones in the text** override the menu, and the result is shown in that zone with your
+  own time beside it: `6pm PT`, `8pm eastern`, `tomorrow london noon`, `9am UTC`
+- **Quick conversions**: `london now`, `now in tokyo`, `3pm london in tokyo`
 - **Holidays across calendars**, computed on your device from Apple’s calendar systems and standard
   astronomical algorithms, so there’s nothing to keep updated:
   - Christian, Western and Orthodox: Easter, Ash Wednesday, the first Sunday of Advent, Pentecost,
@@ -37,6 +40,9 @@ date format, and 12/24-hour preference. Magic Time turns your words into that nu
   explain why instead of picking one
 - Previews all nine Discord timestamp formats the way Discord draws them, with **⌘1–⌘9** to copy one
 - Decodes Unix timestamps and existing `<t:…>` codes
+- **A second opinion for long sentences**: on devices with Apple Intelligence, Apple’s on-device
+  model can suggest a shorter phrase (“Did you mean ‘15th 8:30pm pt’?”). The reader must understand
+  the suggestion on its own, and nothing changes unless you accept it
 - Native SwiftUI, Apple frameworks only, fully offline, no data collected
 
 ## The nine formats

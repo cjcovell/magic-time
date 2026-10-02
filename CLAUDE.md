@@ -23,6 +23,9 @@ command, and the Claude skill in `skill/magic-time`.
 - Every parser change gets a check in `Tests/main.swift`. Checks are pinned to 2026-10-01.
 - Apple frameworks only, fully offline. No packages, no network, no analytics.
 - Discord has nine timestamp styles (t T d D f F s S R); the apps list them F f s t R D d T S.
+- Apple Intelligence (`Sources/PhraseHelper.swift`) may only suggest a phrase: the reader must parse
+  the suggestion itself, `keepsMeaning` must pass, and the person must accept it. Never let the
+  model produce a date.
 - Describe the parser on its own terms; don’t compare it to other apps by name.
 - Say “not affiliated with Discord Inc.” wherever Discord is named in marketing copy.
 - The website lives in `site/` and deploys to GitHub Pages on push. Its privacy policy must stay

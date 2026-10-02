@@ -15,9 +15,14 @@ struct NaturalTime {
         self.now = now
     }
 
-    func parse(_ text: String) -> Reading {
+    func parse(_ text: String) -> Reading { read(text).reading }
+
+    /// The reading, plus the zone the text asked to see it in: the one it named ("london noon"),
+    /// or the one it converted to ("3pm london in tokyo"). `nil` when the text named no zone.
+    func read(_ text: String) -> (reading: Reading, shownIn: TimeZone?) {
         var reader = Reader(tokens: Self.tokenize(text), zone: zone, now: now)
-        return reader.read()
+        let reading = reader.read()
+        return (reading, reading.date == nil ? nil : reader.shownZone)
     }
 
     static func tokenize(_ text: String) -> [String] {
@@ -49,6 +54,7 @@ private struct Reader {
 
     // What the text said.
     private var zoneOverride: TimeZone?
+    private var displayZone: TimeZone?                 // "3pm london in tokyo": show it in Tokyo
     private var instant: Date?                         // "in 3 hours"
     private var day: DayComponents?                    // a calendar day, possibly needing a year
     private var dayIsBareWeekday = false               // "friday": roll a week if already past
@@ -66,6 +72,8 @@ private struct Reader {
         self.now = now
     }
 
+    var shownZone: TimeZone? { displayZone ?? zoneOverride }
+
     private var calendar: Calendar {
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = zoneOverride ?? zone
@@ -80,6 +88,10 @@ private struct Reader {
             if consumed.contains(i) { i += 1; continue }
             if !matchAnything() {
                 let previous = i > 0 ? tokens[i - 1] : ""
+                if tokens[i].count >= 3, Clock.compact(tokens[i], meridiem: nil) != nil, Vocabulary.year(tokens[i]) == nil {
+                    // "fri 930": a time, a room number? Ask rather than guess.
+                    return .note("Is “\(tokens[i])” a time? Add am or pm, like “\(tokens[i])am”, or write “at \(tokens[i])”.")
+                }
                 if Vocabulary.isMeaningful(tokens[i]) || (tokens[i] == "may" && ["in", "of"].contains(previous)) {
                     return .nothing
                 }
@@ -122,22 +134,35 @@ private struct Reader {
     // MARK: Time zones
 
     private mutating func markTimeZones() {
-        var k = 0
-        while k < tokens.count {
-            if let id = Vocabulary.timeZones[tokens[k]], let tz = TimeZone(identifier: id) {
-                // "8pm PT", "PT 8pm", "8 pm eastern time" — never "la fitness" or "mt hood".
-                let before = k > 0 ? tokens[k - 1] : "", after = k + 1 < tokens.count ? tokens[k + 1] : ""
-                guard Vocabulary.isClockWord(before) || Vocabulary.isClockWord(after) else {
-                    looseZoneWord = true
-                    k += 1
-                    continue
-                }
-                if zoneOverride != nil, zoneOverride != tz { failed = true }
-                zoneOverride = tz
-                consumed.insert(k)
-                if k + 1 < tokens.count, tokens[k + 1] == "time" { consumed.insert(k + 1); k += 1 }
+        var named: [(zone: TimeZone, prepositional: Bool)] = []
+        for k in tokens.indices {
+            guard let id = Vocabulary.timeZones[tokens[k]], let tz = TimeZone(identifier: id) else { continue }
+            let before = k > 0 ? tokens[k - 1] : "", after = k + 1 < tokens.count ? tokens[k + 1] : ""
+            // "8pm PT", "PT 8pm", "8 pm eastern time", "london now" — never "la fitness" or "mt hood".
+            let nextToTime = Vocabulary.isClockWord(before) || Vocabulary.isClockWord(after)
+            // "london tomorrow noon": a spelled-out place next to a day. Short codes need a time.
+            let nextToDay = tokens[k].count > 3 && (Vocabulary.isDayWord(before) || Vocabulary.isDayWord(after))
+            // "8pm in london", "now in tokyo", "3pm london to tokyo" — never "in mt hood".
+            let prepositional = (before == "in" || before == "to")
+                && (after.isEmpty || Vocabulary.isClockWord(after) || Vocabulary.isDayWord(after))
+            guard nextToTime || nextToDay || prepositional else {
+                looseZoneWord = true
+                continue
             }
-            k += 1
+            named.append((tz, prepositional))
+            consumed.insert(k)
+            if prepositional { consumed.insert(k - 1) }
+            if after == "time" { consumed.insert(k + 1) }
+        }
+        switch named.count {
+        case 0: break
+        case 1: zoneOverride = named[0].zone
+        case 2 where named[0].zone == named[1].zone: zoneOverride = named[0].zone
+        case 2 where named[1].prepositional:
+            // The first zone is where the time is; the second is where to show it.
+            zoneOverride = named[0].zone
+            displayZone = named[1].zone
+        default: failed = true
         }
     }
 
@@ -145,6 +170,7 @@ private struct Reader {
 
     private mutating func matchAnything() -> Bool {
         matchRelativeOffset()
+            || matchNow()
             || matchHoliday()
             || matchOrdinalWeekday()
             || matchNamedDay()
@@ -181,6 +207,14 @@ private struct Reader {
             setDay(DayComponents(date: target, calendar: calendar))
             return true
         }
+    }
+
+    /// "now", "right now": this minute, for "london now" and "now in tokyo".
+    private mutating func matchNow() -> Bool {
+        if token() == "right", token(1) == "now" { take(2); return setInstant(now) }
+        guard token() == "now" else { return false }
+        take(1)
+        return setInstant(now)
     }
 
     private mutating func setInstant(_ date: Date) -> Bool {
@@ -581,7 +615,25 @@ private struct Reader {
             return true
         }
 
-        guard let t = token(k), var start = Clock.parse(t, allowMilitary: afterAt) else { return false }
+        guard let t = token(k) else { return false }
+        var used = 1
+        var parsed = Clock.parse(t, allowMilitary: afterAt)
+        if parsed == nil, afterAt { parsed = Clock.compact(t, meridiem: nil) }             // "at 930"
+        if parsed == nil, let next = token(k + 1), next == "am" || next == "pm",          // "830 am"
+           let clock = Clock.compact(t, meridiem: Meridiem(next)) {
+            parsed = clock
+            used = 2
+        }
+        if let hour = Int(t), t.count <= 2, (1...12).contains(hour), let next = token(k + 1) {
+            if let m = next.firstMatch(of: #/^([0-5]\d)(am|pm|a|p)$/#) {                    // "8 30am"
+                parsed = Clock(hour: hour, minute: Int(m.1)!, meridiem: Meridiem(String(m.2)))
+                used = 2
+            } else if next.firstMatch(of: #/^[0-5]\d$/#) != nil, let last = token(k + 2), last == "am" || last == "pm" {
+                parsed = Clock(hour: hour, minute: Int(next)!, meridiem: Meridiem(last))    // "8 30 am"
+                used = 3
+            }
+        }
+        guard var start = parsed else { return false }
         if start.meridiem == nil, !afterAt, token(k + 1).flatMap(Meridiem.init) == nil,
            token(k + 1) != "o'clock", token(k + 1) != "oclock", !t.contains(":") {
             // A bare number like "6" only counts as a time next to a day word ("friday 6").
@@ -593,7 +645,7 @@ private struct Reader {
             let precedesDay = token(k + link).map(Vocabulary.isDayWord) ?? false
             guard followsDay || startsRange || precedesDay else { return false }
         }
-        take(k + 1)
+        take(k + used)
         if start.meridiem == nil { start.meridiem = takeMeridiem() }
         if token() == "o'clock" || token() == "oclock" { take(1) }
 
@@ -742,10 +794,20 @@ private struct Clock: Equatable {
             let twentyFour = hour == 0 || hour >= 13 || (m.1.count == 2 && m.1.hasPrefix("0"))
             return Clock(hour: hour, minute: minute, isTwentyFourHour: twentyFour)
         }
+        if let m = token.firstMatch(of: #/^(\d{1,2})(\d{2})(am|pm|a|p)$/#) {             // "830am", "1130p"
+            return compact(String(m.1) + String(m.2), meridiem: Meridiem(String(m.3)))
+        }
         if allowMilitary, let m = token.firstMatch(of: #/^([01]\d|2[0-3])([0-5]\d)$/#) {
             return Clock(hour: Int(m.1)!, minute: Int(m.2)!, isTwentyFourHour: true)
         }
         return nil
+    }
+
+    /// "830" or "1130" as a twelve-hour time, with or without its am/pm.
+    static func compact(_ token: String, meridiem: Meridiem?) -> Clock? {
+        guard let m = token.firstMatch(of: #/^(\d{1,2})(\d{2})$/#), let hour = Int(m.1), let minute = Int(m.2),
+              (1...12).contains(hour), minute < 60 else { return nil }
+        return Clock(hour: hour, minute: minute, meridiem: meridiem)
     }
 }
 
@@ -818,8 +880,8 @@ private enum Vocabulary {
 
     /// A time or a piece of one, for deciding whether a zone word is attached to a time.
     static func isClockWord(_ token: String) -> Bool {
-        if token.firstMatch(of: #/^\d{1,2}(:\d\d)?(am|pm|a|p)?$/#) != nil { return true }
-        return ["am", "pm", "a", "p", "noon", "midnight", "o'clock", "oclock", "time"].contains(token)
+        if token.firstMatch(of: #/^\d{1,2}(:?\d\d)?(am|pm|a|p)?$/#) != nil { return true }
+        return ["am", "pm", "a", "p", "noon", "midnight", "o'clock", "oclock", "time", "now"].contains(token)
     }
 
     static func isTomorrow(_ token: String?) -> Bool {
@@ -864,12 +926,20 @@ private enum Vocabulary {
         "starting", "starts", "start", "begins", "beginning", "-", "o'clock", "oclock", "time", "this", "and", "for",
     ]
 
+    static let spelledNumbers: Set<String> = [
+        "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve",
+        "fifteen", "twenty", "thirty", "forty", "forty-five", "fifty",
+    ]
+
     /// Words that carry date meaning; if one is left unread, the parse is refused.
     static func isMeaningful(_ token: String) -> Bool {
         if token.contains(where: \.isNumber) { return true }
         if weekdays[token] != nil { return true }
         if let m = months[token], m != 5 { return true }   // "may" is usually the verb
         if weekdayOrdinal(token) != nil, token != "last" && token != "first" && token != "second" { return true }
+        // "eight thirty at night": a spelled-out number is probably part of the time. Skipping it
+        // would turn this into a plain "night" (8 PM), so refuse instead.
+        if spelledNumbers.contains(token) { return true }
         return ["next", "after", "before", "ago", "tomorrow", "today", "tonight", "yesterday", "noon", "midnight",
                 "week", "weekend", "month", "year", "hours", "minutes", "days", "weeks", "months"].contains(token)
     }

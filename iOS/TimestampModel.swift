@@ -19,6 +19,11 @@ final class TimestampModel {
         }
     }
     private(set) var reading: Reading = .nothing
+    /// The zone the text named ("london noon"), which the result is then shown in.
+    private(set) var shownIn: TimeZone?
+    /// A shorter phrase for a sentence the reader couldn't follow; used only if the person accepts it.
+    private(set) var suggestion: PhraseHelper.Suggestion?
+    @ObservationIgnored private var suggestionTask: Task<Void, Never>?
     private(set) var copiedStyle: DiscordStyle?
     /// Bumped on every copy so the success haptic fires even when copying the same row twice.
     private(set) var copyCount = 0
@@ -34,7 +39,40 @@ final class TimestampModel {
     /// Re-read relative phrases ("in 2 hours") when the app comes back to the foreground.
     func refresh() { reread() }
 
-    private func reread() { reading = TimeParser.interpret(text, in: zone.timeZone) }
+    private func reread() {
+        let read = TimeParser.read(text, in: zone.timeZone)
+        reading = read.reading
+        shownIn = read.shownIn
+        suggest()
+    }
+
+    private func suggest() {
+        suggestionTask?.cancel()
+        suggestion = nil
+        guard reading == .nothing, !isEmpty else { return }
+        let asked = text, timeZone = zone.timeZone
+        suggestionTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(600))          // wait for a pause in typing
+            guard !Task.isCancelled, let found = await PhraseHelper.suggestion(for: asked, in: timeZone) else { return }
+            if !Task.isCancelled, self?.text == asked { self?.suggestion = found }
+        }
+    }
+
+    func acceptSuggestion() {
+        if let suggestion { text = suggestion.phrase }
+    }
+
+    var displayZone: TimeZone { shownIn ?? zone.timeZone }
+
+    /// Under the field: the zone typed times use, or, when the text named one, where the result
+    /// is shown and what that is in the chosen zone.
+    var zoneHint: String {
+        guard let shownIn, let date else { return zone.inputHint + "." }
+        let name = ZoneOption.name(of: shownIn)
+        let shown = name == "UTC" ? "Shown in UTC." : "Shown in \(name) time."
+        guard let here = zone.equivalent(of: date, shownIn: shownIn) else { return shown }
+        return "\(shown) That’s \(here)."
+    }
 
     func copy(_ style: DiscordStyle) {
         guard let date else { return }

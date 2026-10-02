@@ -66,11 +66,15 @@ func emit(_ object: [String: Any]) {
     print(String(decoding: data, as: UTF8.self))
 }
 
-switch TimeParser.interpret(text, in: zone) {
+let interpretation = TimeParser.read(text, in: zone)
+switch interpretation.reading {
 case .moment(let date):
     let unix = Int(date.timeIntervalSince1970)
-    let reading = date.formatted(.dateTime.weekday(.wide).month(.wide).day().year().hour().minute().timeZone()
-        .locale(Locale(identifier: "en_US")))
+    // A zone named in the text ("london noon", "3pm london in tokyo") is the one to read it back in.
+    var readingStyle = Date.FormatStyle.dateTime.weekday(.wide).month(.wide).day().year().hour().minute().timeZone()
+        .locale(Locale(identifier: "en_US"))
+    if let shownIn = interpretation.shownIn { readingStyle.timeZone = shownIn }
+    let reading = date.formatted(readingStyle)
     if json {
         emit([
             "status": "moment",
@@ -78,10 +82,15 @@ case .moment(let date):
             "unix": unix,
             "readAs": reading,
             "zone": zone.identifier,
+            "shownIn": interpretation.shownIn?.identifier ?? NSNull(),
             "codes": styles.map { ["format": $0.rawValue, "name": $0.name, "code": $0.code(for: date), "preview": $0.preview(for: date)] },
         ])
     } else {
-        print("Read as \(reading) (\(zone.identifier) unless the text named a zone)")
+        if let shownIn = interpretation.shownIn {
+            print("Read as \(reading) (\(shownIn.identifier), named in the text)")
+        } else {
+            print("Read as \(reading) (\(zone.identifier) unless the text named a zone)")
+        }
         print("Unix \(unix)")
         for style in styles {
             print("\(style.code(for: date))  \(style.preview(for: date))  [\(style.name)]")

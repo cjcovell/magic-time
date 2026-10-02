@@ -34,8 +34,37 @@ final class InputModel: ObservableObject {
     /// The parse of `text`, refreshed when the text or zone changes (holidays can involve real math).
     @Published private(set) var reading: Reading = .nothing
 
-    private func reread() { reading = TimeParser.interpret(text, in: zone.timeZone) }
+    /// The zone the text named ("london noon"), which the result is then shown in.
+    @Published private(set) var shownIn: TimeZone?
+
+    /// A shorter phrase for a sentence the reader couldn't follow; used only if the person accepts it.
+    @Published private(set) var suggestion: PhraseHelper.Suggestion?
+    private var suggestionTask: Task<Void, Never>?
+
+    private func reread() {
+        let read = TimeParser.read(text, in: zone.timeZone)
+        reading = read.reading
+        shownIn = read.shownIn
+        suggest()
+    }
+
+    private func suggest() {
+        suggestionTask?.cancel()
+        suggestion = nil
+        guard reading == .nothing, !isEmpty else { return }
+        let asked = text, timeZone = zone.timeZone
+        suggestionTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(600))          // wait for a pause in typing
+            guard !Task.isCancelled, let found = await PhraseHelper.suggestion(for: asked, in: timeZone) else { return }
+            if !Task.isCancelled, self?.text == asked { self?.suggestion = found }
+        }
+    }
+
+    func acceptSuggestion() {
+        if let suggestion { text = suggestion.phrase }
+    }
     var date: Date? { pickedDate ?? reading.date }
+    var displayZone: TimeZone { shownIn ?? zone.timeZone }
     var isEmpty: Bool { text.trimmingCharacters(in: .whitespaces).isEmpty && pickedDate == nil }
 
     func presented() {
@@ -108,7 +137,9 @@ struct ContentView: View {
                 .textFieldStyle(.plain)
                 .font(.system(size: 22))
                 .focused($fieldFocused)
-                .onSubmit { model.copy(model.selectedStyle) }
+                .onSubmit {
+                    if model.date == nil, model.suggestion != nil { model.acceptSuggestion() } else { model.copy(model.selectedStyle) }
+                }
                 .onKeyPress(.upArrow) { model.moveSelection(by: -1); return .handled }
                 .onKeyPress(.downArrow) { model.moveSelection(by: 1); return .handled }
 
@@ -147,11 +178,30 @@ struct ContentView: View {
                 )
                 .labelsHidden()
                 .datePickerStyle(.compact)
-                .environment(\.timeZone, model.zone.timeZone)
+                .environment(\.timeZone, model.displayZone)
                 .fixedSize()
 
-                Text(model.zone.timeZone.abbreviation(for: date) ?? model.zone.label)
-                    .foregroundStyle(.secondary)
+                if let shown = model.shownIn {
+                    // The text named a zone: show the time there, and what that is here.
+                    Text(ZoneOption.name(of: shown))
+                        .foregroundStyle(.secondary)
+                    if let here = model.zone.equivalent(of: date, shownIn: shown) {
+                        Text("· \(here)")
+                            .foregroundStyle(.tertiary)
+                    }
+                } else {
+                    Text(model.zone.timeZone.abbreviation(for: date) ?? model.zone.label)
+                        .foregroundStyle(.secondary)
+                }
+            } else if let suggestion = model.suggestion {
+                Button {
+                    model.acceptSuggestion()
+                } label: {
+                    Label("Did you mean “\(suggestion.phrase)”?", systemImage: "sparkles")
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Color.accentColor)
+                .help("Press Return to use this phrase")
             } else {
                 Text(model.zone.inputHint)
                     .foregroundStyle(.tertiary)

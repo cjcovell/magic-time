@@ -31,7 +31,16 @@ All text goes through one function, `TimeParser.interpret(_:in:now:)` in
 
 The zone passed in is the one chosen in the menu: Local (the device's own zone, the default), a U.S.
 zone, a city elsewhere, or UTC (`ZoneOption.groups`; remembered in `UserDefaults` under `zone` as an
-IANA identifier or `local`). A zone named in the text overrides it.
+IANA identifier or `local`). A zone named in the text overrides it, and `TimeParser.read` also
+returns that zone (`shownIn`) so the apps and the command show the result there: “tomorrow london
+noon” shows 12:00 PM London with the chosen zone’s time beside it. A second zone after “in” or “to”
+is where to show the answer (“3pm london in tokyo”). “now” is this minute, so “london now”
+converts the current time.
+
+When the reader finds nothing in a sentence of four or more words, `PhraseHelper` may ask Apple’s
+on-device model (Foundation Models, iOS 26 and macOS 26 or later with Apple Intelligence) for a
+shorter phrase. The phrase is offered as “Did you mean…?” only if it keeps every date-shifting
+word of the original (`keepsMeaning`) and the reader parses it; nothing changes until it’s accepted.
 
 The same four parser files (`TimeParser`, `NaturalTime`, `Holidays`, `HinduFestivals`) are compiled
 into the test runner (`Tests/main.swift`), and into the `magic-time` command (`CLI/main.swift`),

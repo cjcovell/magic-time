@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		09A58D1CA4500D3603BB015C /* HinduFestivals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D7DF6E3B41403FA38BB9C83 /* HinduFestivals.swift */; };
 		151A46C1898B9155F88FE3A8 /* TimestampModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC2F7D8CA2628D8B4B07A33 /* TimestampModel.swift */; };
+		1AABDCBE5945C9C2CC589474 /* PhraseHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BB0199537932FC2A06C1634 /* PhraseHelper.swift */; };
 		2C1DDAD8882F11210FBF34DF /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2B939D4B21B08D52881B8C62 /* PrivacyInfo.xcprivacy */; };
 		2DC4680F84C836F3C712DD4E /* HinduFestivals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D7DF6E3B41403FA38BB9C83 /* HinduFestivals.swift */; };
 		341426ECB9A1D94EE9B5FD0F /* NaturalTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = E27FFC3A8CC37FA9207C0773 /* NaturalTime.swift */; };
@@ -24,6 +25,7 @@
 		C6A042B7CFDB16FBEDFB2DF9 /* NaturalTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = E27FFC3A8CC37FA9207C0773 /* NaturalTime.swift */; };
 		CA208AF309E46A1ED30B7F69 /* TimeParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87C6ECFE373DD284BE952FD4 /* TimeParser.swift */; };
 		DC2354825E556AAC48BDBE89 /* TimeParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87C6ECFE373DD284BE952FD4 /* TimeParser.swift */; };
+		E57782D6B5E69D15FFC0E30A /* PhraseHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BB0199537932FC2A06C1634 /* PhraseHelper.swift */; };
 		EC38D2743B5D77D38B7BFDF6 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACDF45E031D90D23D78BBE1 /* RootView.swift */; };
 		FD902387AAEAF1F542F48AD8 /* Launcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88623D833BC3DA04A141AA38 /* Launcher.swift */; };
 /* End PBXBuildFile section */
@@ -35,6 +37,7 @@
 		3F524D51FC8A35DFF3EBD894 /* Holidays.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Holidays.swift; sourceTree = "<group>"; };
 		47BAE104BF134677D5CC0598 /* TimestampIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimestampIntents.swift; sourceTree = "<group>"; };
 		4B721CAF9F000C221EFEF9B5 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = AppIcon.icon; sourceTree = "<group>"; };
+		4BB0199537932FC2A06C1634 /* PhraseHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhraseHelper.swift; sourceTree = "<group>"; };
 		4D5F17D8286055A7FA8EB2E8 /* MagicTime-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "MagicTime-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4DC2F7D8CA2628D8B4B07A33 /* TimestampModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimestampModel.swift; sourceTree = "<group>"; };
 		73B5E0D8B3061BEBC41E1DA1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -95,6 +98,7 @@
 				3F524D51FC8A35DFF3EBD894 /* Holidays.swift */,
 				88623D833BC3DA04A141AA38 /* Launcher.swift */,
 				E27FFC3A8CC37FA9207C0773 /* NaturalTime.swift */,
+				4BB0199537932FC2A06C1634 /* PhraseHelper.swift */,
 				87C6ECFE373DD284BE952FD4 /* TimeParser.swift */,
 			);
 			path = Sources;
@@ -208,6 +212,7 @@
 				B76EF58D15B882D808936667 /* Holidays.swift in Sources */,
 				A987DABC7C1BAC2C7A0102F0 /* MagicTimeApp.swift in Sources */,
 				341426ECB9A1D94EE9B5FD0F /* NaturalTime.swift in Sources */,
+				1AABDCBE5945C9C2CC589474 /* PhraseHelper.swift in Sources */,
 				EC38D2743B5D77D38B7BFDF6 /* RootView.swift in Sources */,
 				CA208AF309E46A1ED30B7F69 /* TimeParser.swift in Sources */,
 				7EF6958A6318ECF695C82C95 /* TimestampIntents.swift in Sources */,
@@ -225,6 +230,7 @@
 				5B5958487593B3A89A86DD93 /* Holidays.swift in Sources */,
 				FD902387AAEAF1F542F48AD8 /* Launcher.swift in Sources */,
 				C6A042B7CFDB16FBEDFB2DF9 /* NaturalTime.swift in Sources */,
+				E57782D6B5E69D15FFC0E30A /* PhraseHelper.swift in Sources */,
 				DC2354825E556AAC48BDBE89 /* TimeParser.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -369,7 +375,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = PHYC7GJW6B;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -384,7 +390,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -429,7 +435,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = PHYC7GJW6B;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -450,7 +456,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

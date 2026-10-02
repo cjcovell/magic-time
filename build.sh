@@ -15,7 +15,8 @@ mkdir -p "$BUILD"
 
 echo "→ Parser checks"
 swiftc -O -o "$BUILD/check" "$ROOT/Sources/TimeParser.swift" "$ROOT/Sources/NaturalTime.swift" \
-  "$ROOT/Sources/Holidays.swift" "$ROOT/Sources/HinduFestivals.swift" "$ROOT/Tests/main.swift"
+  "$ROOT/Sources/Holidays.swift" "$ROOT/Sources/HinduFestivals.swift" "$ROOT/Sources/PhraseHelper.swift" \
+  "$ROOT/Tests/main.swift"
 "$BUILD/check"
 
 echo "→ Compiling the magic-time command"
@@ -46,8 +47,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundleIconName</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
-  <key>CFBundleShortVersionString</key><string>1.0</string>
-  <key>CFBundleVersion</key><string>1</string>
+  <key>CFBundleShortVersionString</key><string>1.0.1</string>
+  <key>CFBundleVersion</key><string>2</string>
   <key>LSMinimumSystemVersion</key><string>14.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
   <key>NSHighResolutionCapable</key><true/>

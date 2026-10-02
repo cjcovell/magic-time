@@ -87,6 +87,21 @@ struct ZoneOption: Identifiable, Hashable {
         return groups.lazy.flatMap(\.options).first { $0.label.lowercased() == wanted && !$0.isLocal }
     }
 
+    /// A plain name for any zone: its menu label when listed, otherwise its city.
+    static func name(of zone: TimeZone) -> String {
+        groups.lazy.flatMap(\.options).first { $0.id == zone.identifier }?.label ?? city(of: zone.identifier)
+    }
+
+    /// For a time shown in a zone the text named: the same moment in the chosen zone, as in
+    /// "Sat 7:00 AM your time". `nil` when both zones read the same clock at that moment.
+    func equivalent(of date: Date, shownIn shown: TimeZone, locale: Locale = .current) -> String? {
+        guard shown.secondsFromGMT(for: date) != timeZone.secondsFromGMT(for: date) else { return nil }
+        var style = Date.FormatStyle(locale: locale).weekday(.abbreviated).hour().minute()
+        style.timeZone = timeZone
+        let whose = isLocal ? "your time" : id == "UTC" ? "UTC" : "\(label) time"
+        return "\(date.formatted(style)) \(whose)"
+    }
+
     private static func city(of identifier: String) -> String {
         identifier.split(separator: "/").last.map { $0.replacingOccurrences(of: "_", with: " ") } ?? identifier
     }
@@ -101,25 +116,38 @@ enum Reading: Equatable {
     var date: Date? { if case .moment(let d) = self { d } else { nil } }
 }
 
+/// A reading and, when the text named a zone, the zone to show it in.
+struct Interpretation: Equatable {
+    let reading: Reading
+    let shownIn: TimeZone?
+}
+
 enum TimeParser {
     /// Reads free text — "tomorrow 9:30am", "3rd friday in may 6pm", "lunar new year 7pm PT",
     /// a Unix timestamp, or an existing `<t:…>` tag. Wall-clock times are read in `zone` unless
     /// the text names its own. Never guesses: anything it can't fully account for is `.nothing`.
     static func interpret(_ text: String, in zone: TimeZone, now: Date = .now) -> Reading {
+        read(text, in: zone, now: now).reading
+    }
+
+    /// `interpret`, plus the zone the text asked to see the answer in ("london noon" → London,
+    /// "3pm london in tokyo" → Tokyo), or `nil` when it named none.
+    static func read(_ text: String, in zone: TimeZone, now: Date = .now) -> Interpretation {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return .nothing }
+        guard !trimmed.isEmpty else { return Interpretation(reading: .nothing, shownIn: nil) }
 
         if let tag = trimmed.firstMatch(of: #/<t:(-?\d+)(?::[tTdDfFsSR])?>/#), let seconds = Int(tag.1) {
-            return .moment(Date(timeIntervalSince1970: TimeInterval(seconds)))
+            return Interpretation(reading: .moment(Date(timeIntervalSince1970: TimeInterval(seconds))), shownIn: nil)
         }
         if trimmed.count >= 9, let seconds = Int(trimmed) {
-            return .moment(Date(timeIntervalSince1970: TimeInterval(seconds)))
+            return Interpretation(reading: .moment(Date(timeIntervalSince1970: TimeInterval(seconds))), shownIn: nil)
         }
 
-        switch NaturalTime(zone: zone, now: now).parse(trimmed) {
-        case .moment(let date): return .moment(floorToMinute(date))
-        case let other: return other
+        let (reading, shownIn) = NaturalTime(zone: zone, now: now).read(trimmed)
+        if case .moment(let date) = reading {
+            return Interpretation(reading: .moment(floorToMinute(date)), shownIn: shownIn)
         }
+        return Interpretation(reading: reading, shownIn: nil)
     }
 
     static func parse(_ text: String, in zone: TimeZone, now: Date = .now) -> Date? {

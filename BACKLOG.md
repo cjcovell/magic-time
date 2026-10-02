@@ -14,10 +14,21 @@ Known gaps and planned work, roughly in priority order.
 
 ## Later
 
+- Read spelled-out times (“eight thirty”, “quarter past seven”) in the reader itself.
+- Siri and Shortcuts answer in the zone the phrase named, as the apps now do.
+
 - Localize the app and listing beyond U.S. English.
 
 ## Done, waiting for the next App Store update
 
+Version 1.0.1 (build 2), ready to archive once 1.0 clears review:
+
 - The time zone picker starts on the device’s own zone (“Local”) and lists cities worldwide;
-  Siri, Shortcuts, and `magic-time --zone` take the same choices. Ship it as 1.0.1 with a new
-  build number, and retake the store screenshots (their footer still says Eastern time).
+  Siri, Shortcuts, and `magic-time --zone` take the same choices.
+- A zone named in the text shows the result in that zone, with the chosen zone’s time beside it.
+- “now”, “london now”, “now in tokyo”, and “3pm london in tokyo”.
+- Times without a colon: “830am”, “1130pm”, “8 30 am”, “fri at 930”; a bare “fri 930” asks.
+- Unread spelled-out numbers (“eight thirty”) refuse instead of falling back to “night”.
+- Apple Intelligence suggestions for long sentences, accepted by tapping.
+- Retake the store screenshots (their footer still says Eastern time), and add the new phrases
+  (“tomorrow london noon”, “london now”, “830am”) to the website’s examples when it ships.

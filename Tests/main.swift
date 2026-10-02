@@ -265,11 +265,82 @@ for (name, rule) in HolidayCatalog.datedRules {
 }
 check("orthodox easter 2100", at(2100, 5, 2))         // Julian–Gregorian gap grows to 14 days in 2100
 
-// MARK: Time zone choices
+// MARK: Times without a colon
+
+check("830am", at(2026, 10, 2, 8, 30))                 // 8:30 this morning has passed
+check("tomorrow 830am", at(2026, 10, 2, 8, 30))
+check("1130pm", at(2026, 10, 1, 23, 30))
+check("830 am", at(2026, 10, 2, 8, 30))
+check("fri 830p", at(2026, 10, 2, 20, 30))
+check("8 30am", at(2026, 10, 2, 8, 30))
+check("8 30 pm", at(2026, 10, 1, 20, 30))
+check("fri at 930", at(2026, 10, 2, 9, 30))            // after “at”, the named-day rule picks am or pm
+check("fri at 630", at(2026, 10, 2, 18, 30))
+check("830am london", at(2026, 10, 2, 8, 30, TimeZone(identifier: "Europe/London")!))
+checkNote("fri 930")                                   // a time, a room number, a year? Ask.
+checkNote("930")
+check("fri 1930", nil)                                 // reads as a year, never a time
+check("1260am", nil)
+check("1330pm", nil)
+
+check("the 15th at eight thirty at night", nil)        // spelled-out times aren’t read yet; never fall back to “night”
+check("seven fri 8pm", nil)
+check("in two hours", at(2026, 10, 1, 14))             // spelled amounts the reader does know still work
+check("three days from now", at(2026, 10, 4, 12))
+
+// MARK: Now, and zones named anywhere
+
+let london = TimeZone(identifier: "Europe/London")!
+check("now", now)
+check("right now", now)
+check("london now", now)
+check("now in tokyo", now)
+check("now fri", nil)
+check("tomorrow london noon", at(2026, 10, 2, 12, 0, london))
+check("london tomorrow noon", at(2026, 10, 2, 12, 0, london))
+check("8pm in london", at(2026, 10, 1, 20, 0, london))
+check("3pm london in tokyo", at(2026, 10, 2, 15, 0, london))   // 3 PM in London today has passed
+check("3pm london tokyo paris", nil)
+check("3pm london 4pm tokyo", nil)
+check("in mt hood fri 8pm", nil)
+check("party in paris with bob fri 8pm", nil)
+
+func shown(_ text: String) -> String? {
+    TimeParser.read(text, in: eastern, now: now).shownIn?.identifier
+}
+func expectShown(_ text: String, _ zone: String?) {
+    if shown(text) == zone { passes += 1 } else { failures += 1; print("FAIL  “\(text)” shown in \(shown(text) ?? "the chosen zone"), want \(zone ?? "the chosen zone")") }
+}
+expectShown("fri 8pm", nil)
+expectShown("fri 8pm PT", "America/Los_Angeles")
+expectShown("tomorrow london noon", "Europe/London")
+expectShown("london now", "Europe/London")
+expectShown("now in tokyo", "Asia/Tokyo")
+expectShown("3pm london in tokyo", "Asia/Tokyo")
+expectShown("8pm in london", "Europe/London")
+expectShown("pt session fri 9am", nil)
 
 func expect(_ ok: Bool, _ what: String) {
     if ok { passes += 1 } else { failures += 1; print("FAIL  zones: \(what)") }
 }
+let noonLondon = at(2026, 10, 2, 12, 0, london)
+let us = Locale(identifier: "en_US")
+expect(ZoneOption.named("America/New_York").equivalent(of: noonLondon, shownIn: london, locale: us) == "Fri 7:00\u{202F}AM Eastern time", "what London noon is in Eastern")
+expect(ZoneOption.named("UTC").equivalent(of: noonLondon, shownIn: london, locale: us) == "Fri 11:00\u{202F}AM UTC", "what London noon is in UTC")
+expect(ZoneOption.named("Europe/London").equivalent(of: noonLondon, shownIn: london, locale: us) == nil, "no conversion line when the zones agree")
+expect(ZoneOption.name(of: london) == "London", "a listed zone’s name")
+expect(ZoneOption.name(of: TimeZone(identifier: "America/Los_Angeles")!) == "Pacific", "PT is Pacific")
+expect(ZoneOption.name(of: TimeZone(identifier: "Asia/Hong_Kong")!) == "Hong Kong", "an unlisted zone’s city")
+
+// MARK: Suggestions for long sentences
+
+expect(PhraseHelper.keepsMeaning(of: "raid is on the 15th at eight thirty at night", in: "15th 8:30pm"), "a faithful rewrite is kept")
+expect(!PhraseHelper.keepsMeaning(of: "let's meet next saturday evening at quarter past seven", in: "sat 7:15pm"), "a rewrite that drops “next” is refused")
+expect(!PhraseHelper.keepsMeaning(of: "movie night two fridays from now at 9", in: "fri 9pm"), "a rewrite that drops “from now” is refused")
+expect(PhraseHelper.keepsMeaning(of: "the friday after thanksgiving around 8", in: "friday after thanksgiving 8pm"), "a rewrite that keeps “after” is kept")
+
+// MARK: Time zone choices
+
 let localCity = TimeZone.current.identifier.split(separator: "/").last.map { $0.replacingOccurrences(of: "_", with: " ") } ?? ""
 expect(ZoneOption.defaultID == ZoneOption.localID, "the default is the device’s own zone")
 expect(ZoneOption.named(ZoneOption.localID).timeZone.identifier == TimeZone.current.identifier, "Local follows the device")

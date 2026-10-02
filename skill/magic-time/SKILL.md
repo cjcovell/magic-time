@@ -32,7 +32,7 @@ The exit status tells you which of three things happened:
 
 | Exit | Meaning | What to do |
 |---|---|---|
-| 0 | Found a moment. Output starts with `Read as …` | Give the codes. Mention the "Read as" date so the user can catch a misread (for example, an assumed AM/PM). |
+| 0 | Found a moment. Output starts with `Read as …`, in the zone the text named when it named one (`london noon`, `3pm london in tokyo`) | Give the codes. Mention the "Read as" date so the user can catch a misread (for example, an assumed AM/PM). |
 | 2 | `Won’t guess: …` — a holiday whose date isn't agreed on (Vesak, a bare "Eid", Holi 2027) | Relay the note in your own words and ask which date they mean. Don't pick one yourself. |
 | 1 | No date or time found | Say so and ask them to rephrase with a day and time. Don't guess what they meant. |
 

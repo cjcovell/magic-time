@@ -75,11 +75,18 @@ struct RootView: View {
                     Text("Read as")
                         .foregroundStyle(.secondary)
                 }
-                .environment(\.timeZone, model.zone.timeZone)
+                .environment(\.timeZone, model.displayZone)
+            } else if let suggestion = model.suggestion {
+                // From Apple Intelligence, on this device; nothing changes unless it's tapped.
+                Button {
+                    model.acceptSuggestion()
+                } label: {
+                    Label("Did you mean “\(suggestion.phrase)”?", systemImage: "sparkles")
+                }
             }
         } footer: {
             // Always visible, because the toolbar may show only the globe icon.
-            Text(model.zone.inputHint + ".")
+            Text(model.zoneHint)
         }
     }
 
